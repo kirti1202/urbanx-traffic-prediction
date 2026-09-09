@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>UrbanX AI — Route Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Dancing+Script:wght@700&family=Pacifico&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    /* ═══════════════════════════════════════════════
+       URBANX AI — THEME TOKENS (mirrored from main)
+    ═══════════════════════════════════════════════ */
+    :root{
+      /* Brand */
+      --primary:        #6b7f3a;
+      --primary-dark:   #4f5e2b;
+      --primary-light:  #9db558;
+      --accent:         #f5a623;
+      --accent-dark:    #d4861a;
+      --danger:         #c0392b;
+      --danger-soft:    #e74c3c;
+
+      /* Surfaces */
+      --background:     #fdeea0;
+      --bg-gradient:    linear-gradient(145deg,#fdeea0 0%,#fef3bc 40%,#fde88a 100%);
+      --card-bg:        rgba(255,248,200,0.92);
+      --card-bg-solid:  #fffae0;
+      --card-border:    rgba(107,127,58,0.18);
+      --card-shadow:    0 4px 18px rgba(80,94,43,0.13);
+
+      /* Text */
+      --text-dark:      #1e2112;
+      --text-mid:       #4a5028;
+      --text-muted:     #8a8a6a;
+      --text-light:     #ffffff;
+
+      /* Dark mode */
+      --dark-bg:        #252d14;
+      --dark-surface:   #323d1c;
+      --dark-card:      #3d4a22;
+      --dark-border:    rgba(157,181,88,0.18);
+
+      /* Traffic — calibrated for map contrast */
+      --traffic-low:    #1d9e5c;
+      --traffic-med:    #e8a020;
+      --traffic-high:   #d94f1e;
+      --traffic-severe: #8b2fc9;
+
+      /* Map */
+      --map-border:     rgba(107,127,58,0.28);
+      --map-shadow:     0 8px 32px rgba(80,94,43,0.22);
+      --popup-bg:       #fffff5;
+
+      --radius:         14px;
+      --radius-sm:      9px;
+      --radius-lg:      20px;
+      --transition:     .22s cubic-bezier(.4,0,.2,1);
+    }
+
+    body.dark {
+      --background:     #181f0c;
+      --bg-gradient:    linear-gradient(145deg,#181f0c 0%,#1e2810 40%,#141a09 100%);
+      --card-bg:        rgba(38,48,20,0.96);
+      --card-bg-solid:  #252f14;
+      --card-border:    rgba(157,181,88,0.18);
+      --card-shadow:    0 4px 18px rgba(0,0,0,0.45);
+      --text-dark:      #e8f0cc;
+      --text-mid:       #b5c978;
+      --text-muted:     #7a8a50;
+      --popup-bg:       #252f14;
+      --map-border:     rgba(157,181,88,0.22);
+    }
+
+    /* ── Dark body ── */
+    body.dark { background: var(--bg-gradient); color: var(--text-dark); }
+
+    /* ── Route bar ── */
+    body.dark .route-bar {
+      background: linear-gradient(160deg,rgba(38,48,20,.98) 0%,rgba(30,38,16,.97) 100%);
+      border-color: rgba(157,181,88,.2);
+      box-shadow: 0 8px 28px rgba(0,0,0,.4);
+    }
+    body.dark .route-bar::before { opacity:.3; }
+    body.dark .back-btn {
+      background: rgba(255,255,255,.05);
+      border-color: rgba(157,181,88,.2);
+      color: #9db558;
+    }
+    body.dark .back-btn:hover { background: rgba(245,166,35,.12); border-color: var(--accent); color: #e8f0cc; }
+    body.dark .rb-label { color: #7a8a50; }
+    body.dark .rl-icon.origin      { background: rgba(29,158,92,.18); }
+    body.dark .rl-icon.destination { background: rgba(192,57,43,.15); }
+    body.dark .rb-val { background: rgba(30,38,16,.85); color: #c8dba0; border-color: rgba(157,181,88,.2); }
+    body.dark .rb-arrow { color: var(--accent); }
+
+    /* ── Status bar ── */
+    body.dark .status-bar.info    { background:#252f14; border-color: var(--accent);    color:#d4c97a; }
+    body.dark .status-bar.success { background:#1a2f1a; border-color:#2d9e5a;           color:#7dd87d; }
+    body.dark .status-bar.error   { background:#2f1a1a; border-color: var(--danger);    color:#e08080; }
+
+    /* ── Cards ── */
+    body.dark .card {
+      background: rgba(38,48,20,0.97);
+      border-color: rgba(157,181,88,.16);
+    }
+    body.dark .card-title { color: #9db558; }
+    body.dark .card-title::before { background: var(--accent); }
+
+    /* ── Map controls ── */
+    body.dark .map-controls select { background:#252f14; color:#e8f0cc; border-color:rgba(157,181,88,.3); }
+    body.dark .map-controls button { background:#4f5e2b; color:white; }
+    body.dark .map-controls button:hover { background:#3d4a22; }
+    body.dark .vtbtn { color:#9db558; border-color:rgba(157,181,88,.3); }
+    body.dark .vtbtn.active { background:var(--accent); color:#1a1f0a; border-color:var(--accent); }
+    body.dark .map-zoom-badge {
+      background:rgba(37,47,20,.96) !important;
+      color:#b5c978 !important;
+      border-color:rgba(157,181,88,.25) !important;
+    }
+    body.dark .map-fs-btn {
+      background:rgba(37,47,20,.96) !important;
+      color:#9db558 !important;
+      border-color:rgba(157,181,88,.25) !important;
+    }
+    body.dark .map-loader { background:rgba(24,31,12,.93); color:#9db558; }
+    body.dark .loader-sub { color:#7a8a50; }
+    body.dark .legend {
+      background:rgba(30,38,16,.7);
+      border-color:rgba(157,181,88,.15);
+    }
+    body.dark .legend span { background:rgba(255,255,255,.05); border-color:rgba(157,181,88,.1); color:#b5c978; }
+
+    /* ── Journey Details tiles ── */
+    body.dark .jd-tile {
+      background: linear-gradient(145deg,rgba(38,48,20,.9),rgba(30,38,16,.7));
+      border-color: rgba(157,181,88,.16);
+    }
+    body.dark .jd-tile .tile-lbl { color: #7a8a50; }
+    body.dark .jd-tile .tile-val { color: #b5c978; }
+    body.dark .jd-tile .tile-sub { color: #7a8a50; }
+    body.dark .jd-tile .tile-icon { background: rgba(157,181,88,.1); }
+    body.dark .jd-tile .tile-icon svg { color: #9db558; }
+
+    /* ── Congestion panel ── */
+    body.dark .cong-panel { background:rgba(38,48,20,.85); border-color:rgba(157,181,88,.16); }
+    body.dark .cong-title { color:#7a8a50; }
+    body.dark .cong-pct   { color:#9db558; }
+    body.dark .cong-desc  { color:#7a8a50; }
+    body.dark .cong-bar-wrap { background:rgba(157,181,88,.08); }
+
+    /* ── Route status pills ── */
+    body.dark .rs-pill {
+      background: rgba(38,48,20,.6);
+      border-color: rgba(157,181,88,.18);
+      color: #b5c978;
+    }
+    body.dark .rs-pill span { color:#e8f0cc; }
+    body.dark .rs-pill:hover { background:rgba(38,48,20,.9); border-color:var(--accent); }
+
+    /* ── Segment list ── */
+    body.dark .seg-item { background:rgba(38,48,20,.7); border-color:transparent; }
+    body.dark .seg-item:hover { background:rgba(55,68,28,.95); border-color:rgba(157,181,88,.18); }
+    body.dark .seg-name   { color:#9db558; }
+    body.dark .seg-detail { color:#7a8a50; }
+
+    /* ── ML stat rows ── */
+    body.dark .stat-row { background:rgba(38,48,20,.55); color:#b5c978; }
+    body.dark .stat-row:hover { background:rgba(55,68,28,.85); border-color:rgba(157,181,88,.18); }
+    body.dark .stat-val { color:#9db558; }
+
+    /* ── Timeline ── */
+    body.dark .tl-item { background:rgba(38,48,20,.6); border-left-color:rgba(245,166,35,.5); }
+    body.dark .tl-item:hover { background:rgba(55,68,28,.9); }
+    body.dark .tl-time { color:#9db558; }
+
+    /* ── Footer ── */
+    body.dark .footer { background:#141a09; color:#b5c978; }
+
+    /* ── Scrollbar ── */
+    body.dark ::-webkit-scrollbar-track { background:#181f0c; }
+    body.dark ::-webkit-scrollbar-thumb { background:#4f5e2b; border-radius:4px; }
+    body.dark ::-webkit-scrollbar-thumb:hover { background:#6b7f3a; }
+
+    /* ── Toggle button ── */
+    .toggle-btn {
+      background: rgba(245,166,35,.13);
+      backdrop-filter: blur(12px);
+      color: var(--text-light);
+      padding: 8px 13px; border-radius: 999px;
+      font-size: 14px; cursor: pointer;
+      border: 2px solid transparent;
+      font-family: inherit; transition: all var(--transition);
+      display: flex; align-items: center;
+    }
+    .toggle-btn:hover { background:rgba(245,166,35,.28); transform:translateY(-2px); border-color:rgba(245,166,35,.5); }
+        .user-avatar {
+          width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+          border: 2.5px solid rgba(200,216,154,0.7); transition: all 0.25s ease;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .user-avatar:hover { border-color: #c8d89a; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(107,127,58,0.35); }
+        .user-dropdown {
+          display: none; position: fixed;
+          background: rgba(255,253,225,0.99); backdrop-filter: blur(20px);
+          border: 1.5px solid rgba(107,127,58,0.2); border-radius: 16px;
+          box-shadow: 0 16px 48px rgba(79,94,43,0.25);
+          padding: 16px 18px; min-width: 200px; z-index: 99999;
+        }
+        .user-dropdown.open { display: block; }
+        .user-dropdown-name { font-size: 14px; font-weight: 700; color: #4f5e2b; margin-bottom: 2px; }
+        .user-dropdown-email { font-size: 11px; color: #9a9a7a; margin-bottom: 4px; word-break: break-all; }
+        .user-logout-btn {
+          width: 100%; padding: 9px 12px; border-radius: 999px; border: none;
+          background: linear-gradient(135deg, #6b7f3a, #4f5e2b); color: #fff;
+          font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+          display: flex; align-items: center; gap: 7px; justify-content: center;
+          transition: all 0.22s ease; margin-top: 4px;
+        }
+        .user-logout-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,94,43,0.3); }
+
+    /* ─── Reset ─── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:"Poppins","Segoe UI",Arial,sans-serif;
+      background:var(--bg-gradient);
+      color:var(--text-dark);
+      min-height:100vh; display:flex; flex-direction:column;
+      transition:background var(--transition),color var(--transition);
+    }
+
+
+    /* ─── Nav ─── */
+    .nav-shell{
+      position:sticky; top:0; z-index:300;
+      padding:10px 28px;
+      background:transparent;
+    }
+    .nav{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 22px;
+      background-image:url('pic/nav.jpeg'); background-size:cover; background-position:center;
+      color:var(--text-light);
+      box-shadow:0 6px 28px rgba(0,0,0,.32);
+      border-radius:999px;               /* ← full pill curve */
+      position:relative; overflow:hidden;
+    }
+    .nav::after{
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg,rgba(107,127,58,.82),rgba(79,94,43,.88));
+      z-index:0;
+    }
+    .nav>*{ position:relative; z-index:2; }
+    .brand{ font-size:22px; font-weight:700; display:flex; align-items:center; gap:9px; }
+    .brand-text{
+      background:linear-gradient(130deg,#ffe97a,var(--accent));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; font-weight:800;
+    }
+    .nav-links{ display:flex; gap:8px; }
+    .nav-btn{
+      background:rgba(245,166,35,.13); backdrop-filter:blur(12px);
+      color:var(--text-light); padding:8px 17px; border-radius:999px;  /* ← pill buttons */
+      text-decoration:none; font-size:13px; font-weight:500;
+      transition:all var(--transition);
+      display:flex; align-items:center; gap:6px; border:2px solid transparent;
+    }
+    .nav-btn:hover{ background:rgba(245,166,35,.28); transform:translateY(-2px); border-color:rgba(245,166,35,.5); }
+    .nav-btn.active{
+      background:rgba(253,238,160,.95); color:var(--primary-dark);
+      font-weight:700; border-color:var(--accent);
+    }
+
+    /* ─── Main ─── */
+    main{ flex:1; padding:24px 40px; max-width:1320px; margin:0 auto; width:100%; }
+
+    /* ─── Route bar — Premium Redesign ─── */
+    .route-bar{
+      background: linear-gradient(160deg, rgba(255,252,218,.97) 0%, rgba(255,249,200,.96) 100%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 0 rgba(255,255,255,.85) inset,
+                  0 8px 28px rgba(80,94,43,.14),
+                  0 2px 6px rgba(80,94,43,.07);
+      border: 1.5px solid rgba(157,181,88,.3);
+      position: relative;
+      overflow: visible;
+    }
+    /* top accent stripe */
+    .route-bar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 28px; right: 28px; height: 2.5px;
+      background: linear-gradient(90deg, transparent, var(--accent) 35%, var(--primary) 65%, transparent);
+      border-radius: 0 0 3px 3px; opacity: .55;
+    }
+    .route-bar-inner {
+      display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;
+      padding: 12px 20px;
+    }
+    .rb-group{ display:flex; align-items: center; gap:8px; }
+    .rb-label{
+      font-size: 9px; color: var(--text-muted); font-weight: 800;
+      letter-spacing: 1.1px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 5px;
+      flex-shrink: 0;
+    }
+    .rb-label .rl-icon {
+      width: 16px; height: 16px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .rb-label .rl-icon.origin      { background: rgba(29,158,92,.15); color: #1a9055; }
+    .rb-label .rl-icon.destination { background: rgba(192,57,43,.12); color: var(--danger); }
+    .rb-val{
+      font-size: 14px; font-weight: 700; color: var(--primary);
+      background: rgba(255,255,255,.75);
+      padding: 7px 15px; border-radius: 10px;
+      border: 1.5px solid rgba(157,181,88,.25);
+      letter-spacing: -.1px;
+      box-shadow: 0 1px 4px rgba(80,94,43,.07);
+    }
+    body.dark .rb-val { background: rgba(50,61,28,.7); color: #c8dba0; }
+    .rb-arrow{
+      display: flex; align-items: center;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    /* Re-run button */
+    .rb-btn{
+      padding: 9px 20px; border-radius: 10px; border: none;
+      background: linear-gradient(140deg, var(--primary), var(--primary-dark));
+      color: white; font-family: inherit; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all var(--transition);
+      display: flex; align-items: center; gap: 7px;
+      box-shadow: 0 4px 12px rgba(107,127,58,.35),
+                  0 1px 0 rgba(255,255,255,.12) inset;
+      position: relative; overflow: hidden;
+    }
+    .rb-btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.1) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .rb-btn:hover {
+      background: linear-gradient(140deg, #7a9143, #586b30);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 18px rgba(107,127,58,.42), 0 1px 0 rgba(255,255,255,.12) inset;
+    }
+    .rb-btn:active { transform: translateY(0); }
+    /* Back button */
+    .back-btn{
+      padding: 9px 16px; border-radius: 10px;
+      border: 1.5px solid rgba(157,181,88,.3);
+      background: rgba(255,255,255,.6);
+      color: var(--primary); font-family: inherit; font-size: 13px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      transition: all var(--transition);
+      box-shadow: 0 1px 4px rgba(80,94,43,.07);
+    }
+    .back-btn:hover {
+      background: rgba(245,166,35,.18);
+      border-color: var(--accent); color: var(--primary-dark);
+      transform: translateX(-2px);
+    }
+    /* Mode badge on route bar */
+    .rb-mode-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 11px 5px 8px;
+      background: rgba(107,127,58,.09);
+      border: 1px solid rgba(107,127,58,.2); border-radius: 20px;
+      font-size: 11px; font-weight: 700; color: var(--primary-dark);
+    }
+    .rb-mode-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px; border-radius: 10px;
+      border: 1.5px solid rgba(107,127,58,.2);
+      background: rgba(255,255,255,.55);
+      color: var(--text-mid); font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: all var(--transition); white-space: nowrap;
+    }
+    .rb-mode-btn:hover {
+      border-color: var(--accent); color: var(--primary);
+      background: rgba(245,166,35,.1); transform: translateY(-1px);
+    }
+    .rb-mode-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; border-color: var(--primary);
+      box-shadow: 0 3px 10px rgba(107,127,58,.3);
+    }
+
+    /* ─── Status bar ─── */
+    .status-bar{
+      padding:10px 16px; border-radius:10px; font-size:13px;
+      margin-bottom:14px; display:none; border:1.5px solid;
+      font-weight:500;
+    }
+    .status-bar.show{ display:block; }
+    .status-bar.info   { background:#fffbe8; border-color:var(--accent);    color:#7a5a00; }
+    .status-bar.error  { background:#ffeaea; border-color:var(--danger);    color:#8b0000; }
+    .status-bar.success{ background:#eaf5ea; border-color:#2d9e5a;          color:#1a4d1a; }
+
+    /* ─── Grid layout ─── */
+    .grid{ display:grid; grid-template-columns:1fr 340px; gap:18px; }
+    .left{ display:flex; flex-direction:column; gap:18px; }
+    .right{ display:flex; flex-direction:column; gap:18px; }
+
+    /* ─── Cards ─── */
+    .card{
+      background:var(--card-bg);
+      backdrop-filter:blur(8px);
+      border-radius:18px; padding:22px;
+      box-shadow:var(--card-shadow);
+      border:2px solid var(--card-border);
+    }
+    body.dark .card{ background:var(--dark-card); border-color:var(--dark-border); }
+
+    .card-title{
+      font-size:15px; font-weight:700; color:var(--primary);
+      margin-bottom:14px; display:flex; align-items:center; gap:8px;
+    }
+    .card-title::before{
+      content:''; width:4px; height:20px;
+      background:var(--accent); border-radius:2px;
+      flex-shrink:0;
+    }
+
+    /* ─── Map section ─── */
+    .map-controls{
+      display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;
+    }
+    .map-controls select{
+      padding:6px 12px; border-radius:var(--radius-sm);
+      border:1.5px solid rgba(245,166,35,.7);
+      font-family:inherit; font-size:12px;
+      background:var(--card-bg-solid); color:var(--text-dark); cursor:pointer;
+    }
+    body.dark .map-controls select{ background:var(--dark-card); color:#e8f0cc; }
+    .map-controls button{
+      padding:6px 13px; border-radius:var(--radius-sm);
+      border:none; background:var(--primary); color:white;
+      font-family:inherit; font-size:12px; font-weight:600;
+      cursor:pointer; transition:all var(--transition);
+    }
+    .map-controls button:hover{ background:var(--primary-dark); transform:translateY(-1px); }
+
+    /* Map container */
+    .map-wrap{ position:relative; }
+    .map-loader{
+      position:absolute; inset:0; z-index:999;
+      background:rgba(255,250,220,.93);
+      border-radius:var(--radius);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:12px; font-size:14px; font-weight:600; color:var(--primary);
+      transition:opacity .4s; backdrop-filter:blur(4px);
+    }
+    .map-loader.hide{ opacity:0; pointer-events:none; }
+    .spinner{
+      width:42px; height:42px;
+      border:4px solid rgba(107,127,58,.15);
+      border-top-color:var(--primary);
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+    }
+    @keyframes spin{ to{transform:rotate(360deg)} }
+    @keyframes brandShine { 0%{background-position:0% center} 100%{background-position:200% center} }
+    .loader-sub{ font-size:12px; color:var(--text-muted); }
+
+    #route-map{
+      width:100%; height:460px;
+      border-radius:var(--radius);
+      box-shadow:var(--map-shadow);
+      border:2px solid var(--map-border);
+      display:block;
+    }
+
+    /* Zoom badge overlay */
+    .map-zoom-badge{
+      position:absolute; top:10px; right:10px; z-index:500;
+      background:rgba(255,250,224,.92);
+      border:1.5px solid var(--card-border);
+      border-radius:8px; padding:4px 10px;
+      font-size:11px; font-weight:700; color:var(--primary);
+      backdrop-filter:blur(6px); pointer-events:none;
+    }
+    body.dark .map-zoom-badge{ background:rgba(50,61,28,.92); color:#b5c978; }
+
+    /* Fullscreen button */
+    .map-fs-btn{
+      position:absolute; bottom:12px; right:12px; z-index:500;
+      background:rgba(255,250,224,.92); border:1.5px solid var(--card-border);
+      border-radius:8px; padding:5px 10px; font-size:13px;
+      cursor:pointer; backdrop-filter:blur(6px);
+      color:var(--primary-dark); font-weight:700;
+      transition:all var(--transition);
+    }
+    .map-fs-btn:hover{ background:var(--accent); color:white; }
+
+    /* Leaflet popup theming */
+    .leaflet-popup-content-wrapper{
+      background:var(--popup-bg) !important;
+      border:2px solid var(--primary) !important;
+      border-radius:12px !important;
+      box-shadow:0 6px 24px rgba(0,0,0,.18) !important;
+      padding:0 !important;
+    }
+    .leaflet-popup-content{ margin:12px 16px !important; }
+    .leaflet-popup-tip{ background:var(--primary) !important; }
+    .leaflet-popup-close-button{ color:var(--primary) !important; font-size:16px !important; }
+
+    /* Map legend */
+    .legend{
+      display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;
+      font-size:12px; align-items:center;
+      padding:9px 13px;
+      background:rgba(255,250,220,.6); border-radius:var(--radius-sm);
+      border:1.5px solid var(--card-border);
+    }
+    .legend span{ display:flex; align-items:center; gap:5px; font-weight:600; color:var(--text-mid); }
+    .ldot{ width:11px; height:11px; border-radius:50%; display:inline-block; flex-shrink:0; }
+
+    /* ─── Journey Details — Premium Redesign ─── */
+    .journey-card { display:flex; flex-direction:column; gap:14px; }
+
+    /* stat tiles row */
+    .jd-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .jd-tile {
+      background:linear-gradient(145deg, var(--card-bg-solid), rgba(255,255,255,.65));
+      border-radius:14px; padding:14px 15px;
+      border:1.5px solid var(--card-border);
+      box-shadow:0 2px 10px rgba(80,94,43,.07);
+      transition:all var(--transition); position:relative; overflow:hidden;
+    }
+    .jd-tile::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      border-radius:14px 14px 0 0;
+      background:linear-gradient(90deg, var(--tile-accent,var(--accent)), transparent);
+    }
+    .jd-tile:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(80,94,43,.13); }
+    body.dark .jd-tile { background:rgba(50,61,28,.5); }
+    .jd-tile .tile-icon {
+      width:28px; height:28px; border-radius:8px;
+      background:rgba(107,127,58,.1); display:flex; align-items:center;
+      justify-content:center; margin-bottom:8px;
+    }
+    .jd-tile .tile-icon svg { color:var(--primary); }
+    .jd-tile .tile-lbl {
+      font-size:9px; font-weight:800; color:var(--text-muted);
+      letter-spacing:1px; text-transform:uppercase; margin-bottom:3px;
+    }
+    .jd-tile .tile-val {
+      font-size:21px; font-weight:800; color:var(--primary);
+      line-height:1; letter-spacing:-.5px;
+    }
+    .jd-tile .tile-sub {
+      font-size:10px; color:var(--text-muted); font-weight:600;
+      margin-top:3px;
+    }
+
+    /* Congestion panel */
+    .cong-panel {
+      background:linear-gradient(145deg, var(--card-bg-solid), rgba(255,255,255,.55));
+      border-radius:14px; padding:14px 15px;
+      border:1.5px solid var(--card-border);
+      box-shadow:0 2px 10px rgba(80,94,43,.07);
+    }
+    body.dark .cong-panel { background:rgba(50,61,28,.5); }
+    .cong-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .cong-title {
+      font-size:10px; font-weight:800; color:var(--text-muted);
+      letter-spacing:1px; text-transform:uppercase;
+      display:flex; align-items:center; gap:5px;
+    }
+    .cong-badge {
+      padding:3px 10px; border-radius:10px; font-size:11px;
+      font-weight:800; color:white; letter-spacing:.3px;
+    }
+    /* slim segmented bar — no ticks, no labels */
+    .cong-bar-wrap {
+      height:8px; border-radius:999px;
+      background:rgba(107,127,58,.1);
+      overflow:hidden; position:relative;
+    }
+    .meter-bar {
+      height:100%; border-radius:999px;
+      background:linear-gradient(90deg,var(--traffic-low),var(--traffic-med),var(--traffic-high));
+      transition:width 1.2s cubic-bezier(.4,0,.2,1);
+      width:0%;
+    }
+    .cong-footer {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-top:8px;
+    }
+    .cong-pct { font-size:13px; font-weight:800; color:var(--primary); }
+    .cong-desc { font-size:11px; color:var(--text-muted); font-weight:600; }
+
+    /* Route status row */
+    .route-status-row {
+      display:flex; gap:8px;
+    }
+    .rs-pill {
+      flex:1; display:flex; align-items:center; gap:7px;
+      padding:9px 12px; border-radius:12px;
+      background:rgba(255,255,255,.55); border:1.5px solid var(--card-border);
+      font-size:12px; font-weight:700; color:var(--text-mid);
+      transition:all var(--transition);
+    }
+    body.dark .rs-pill { background:rgba(50,61,28,.4); }
+    .rs-pill:hover { background:rgba(255,255,255,.85); border-color:var(--accent); }
+    .rs-pill svg { flex-shrink:0; }
+    .rs-pill span { color:var(--text-dark); }
+
+    /* keep old names for JS compat */
+    .eta-row { display:none; }
+
+    /* ─── Segment list ─── */
+    .seg-list{ display:flex; flex-direction:column; gap:8px; }
+    .seg-item{
+      display:flex; align-items:center; gap:11px; padding:10px 13px;
+      background:rgba(255,255,255,.6); border-radius:11px; font-size:13px;
+      transition:all var(--transition); border:1.5px solid transparent;
+    }
+    .seg-item:hover{ background:rgba(255,255,255,.95); transform:translateX(4px); border-color:var(--card-border); }
+    body.dark .seg-item{ background:rgba(50,61,28,.5); }
+    body.dark .seg-item:hover{ background:rgba(61,74,34,.9); }
+    .seg-dot{ width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .seg-info{ flex:1; }
+    .seg-name{ font-weight:700; color:var(--primary); font-size:13px; }
+    .seg-detail{ color:var(--text-muted); font-size:11px; }
+    .seg-badge{ padding:3px 9px; border-radius:9px; font-size:11px; font-weight:700; color:white; flex-shrink:0; }
+
+    /* ─── Stats ─── */
+    .stat-rows{ display:flex; flex-direction:column; gap:8px; }
+    .stat-row{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:9px 13px;
+      background:rgba(255,255,255,.5); border-radius:10px; font-size:13px;
+      border:1.5px solid transparent; transition:all var(--transition);
+    }
+    .stat-row:hover{ background:rgba(255,255,255,.85); border-color:var(--card-border); }
+    body.dark .stat-row{ background:rgba(50,61,28,.4); }
+    .stat-val{ font-weight:700; font-size:14px; color:var(--primary); }
+
+    /* ─── Timeline ─── */
+    .tl{
+      display:flex; flex-direction:column; gap:7px;
+      max-height:240px; overflow-y:auto;
+      scrollbar-width:thin; scrollbar-color:var(--accent) transparent;
+    }
+    .tl-item{
+      display:flex; gap:10px; align-items:center;
+      padding:9px 12px; background:rgba(255,255,255,.5); border-radius:10px;
+      border-left:3px solid var(--accent); font-size:12px;
+      transition:all var(--transition);
+    }
+    .tl-item:hover{ background:rgba(255,255,255,.85); }
+    body.dark .tl-item{ background:rgba(50,61,28,.4); }
+    .tl-time{ font-weight:700; color:var(--primary); min-width:52px; }
+    .tl-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+    /* ─── Footer ─── */
+    .footer{ background:var(--primary); color:var(--text-light); text-align:center; padding:13px; font-size:13px; }
+
+    /* ─── Page Entrance & Animation System ─── */
+    .page{ opacity:0; transform:translateY(18px); animation:pageIn .55s cubic-bezier(.2,.8,.3,1) forwards; }
+    @keyframes pageIn{ to{opacity:1;transform:translateY(0)} }
+    @keyframes dashFlow{ to{ stroke-dashoffset:-30; } }
+    @keyframes spin{ to{transform:rotate(360deg)} }
+    @keyframes brandShine { 0%{background-position:0% center} 100%{background-position:200% center} }
+
+    /* Dark mode entrance animation */
+    @keyframes darkModeIn {
+        0%   { opacity:0; transform:translateY(12px) scale(.97); filter:brightness(.5); }
+        60%  { opacity:1; filter:brightness(1.08); }
+        100% { opacity:1; transform:translateY(0) scale(1); filter:brightness(1); }
+    }
+
+    /* Core keyframes */
+    @keyframes fadeUp {
+        from { opacity:0; transform:translateY(22px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes slideRight {
+        from { opacity:0; transform:translateX(-16px); }
+        to   { opacity:1; transform:translateX(0); }
+    }
+    @keyframes scalePop {
+        from { opacity:0; transform:scale(.94); }
+        to   { opacity:1; transform:scale(1); }
+    }
+    @keyframes shimmerSweep {
+        from { left:-100%; }
+        to   { left:160%; }
+    }
+    @keyframes meterGrow {
+        from { width:0%; }
+    }
+
+    /* Nav */
+    .nav-shell { animation:slideNavDown .45s cubic-bezier(.2,.8,.3,1) forwards; }
+    @keyframes slideNavDown {
+        from { opacity:0; transform:translateY(-16px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Route bar */
+    .route-bar { animation:fadeUp .5s .08s cubic-bezier(.2,.8,.3,1) both; }
+
+    /* Status bar */
+    .status-bar.show { animation:slideRight .3s cubic-bezier(.2,.8,.3,1); }
+
+    /* Grid columns stagger */
+    .left  { animation:fadeUp .5s .15s cubic-bezier(.2,.8,.3,1) both; }
+    .right { animation:fadeUp .5s .24s cubic-bezier(.2,.8,.3,1) both; }
+
+    /* Cards */
+    .card {
+        transition:box-shadow .25s ease, transform .25s ease;
+        animation:scalePop .48s cubic-bezier(.2,.8,.3,1) both;
+    }
+    .left  .card:nth-child(1) { animation-delay:.15s; }
+    .left  .card:nth-child(2) { animation-delay:.22s; }
+    .right .card:nth-child(1) { animation-delay:.24s; }
+    .right .card:nth-child(2) { animation-delay:.30s; }
+    .right .card:nth-child(3) { animation-delay:.36s; }
+    .card:hover {
+        box-shadow:0 10px 32px rgba(80,94,43,.18);
+        transform:translateY(-2px);
+    }
+
+    /* Stat tiles */
+    .jd-tile {
+        transition:transform .22s cubic-bezier(.2,.8,.3,1), box-shadow .22s ease;
+    }
+    .jd-tile:hover {
+        transform:translateY(-4px) scale(1.02) !important;
+        box-shadow:0 8px 22px rgba(80,94,43,.16) !important;
+    }
+
+    /* Segment items */
+    .seg-item {
+        transition:all .2s cubic-bezier(.2,.8,.3,1);
+        animation:fadeUp .4s cubic-bezier(.2,.8,.3,1) both;
+    }
+    .seg-item:nth-child(1){ animation-delay:.3s; }
+    .seg-item:nth-child(2){ animation-delay:.36s; }
+    .seg-item:nth-child(3){ animation-delay:.42s; }
+    .seg-item:nth-child(4){ animation-delay:.48s; }
+    .seg-item:hover {
+        transform:translateX(5px);
+        background:rgba(255,255,255,.95);
+        border-color:var(--card-border);
+    }
+
+    /* Stat rows */
+    .stat-row { transition:all .2s ease; }
+    .stat-row:hover { background:rgba(255,255,255,.9); transform:translateX(3px); }
+
+    /* Timeline items */
+    .tl-item { transition:background .2s ease, transform .2s ease; }
+    .tl-item:hover { background:rgba(255,255,255,.9); transform:translateX(4px); }
+
+    /* Congestion bar animate on load */
+    .meter-bar { transition:width 1.4s cubic-bezier(.4,0,.2,1); }
+
+    /* Nav btn sweep */
+    .nav-btn { position:relative; overflow:hidden; }
+    .nav-btn::before {
+        content:''; position:absolute; inset:0;
+        background:rgba(255,255,255,.08);
+        transform:scaleX(0); transform-origin:left;
+        transition:transform .3s ease; border-radius:inherit;
+    }
+    .nav-btn:hover::before { transform:scaleX(1); }
+
+    /* Re-run btn shimmer */
+    .rb-btn { overflow:hidden; position:relative; }
+    .rb-btn::before {
+        content:''; position:absolute;
+        top:0; left:-100%; width:55%; height:100%;
+        background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+        pointer-events:none;
+    }
+    .rb-btn:hover::before { animation:shimmerSweep .5s ease forwards; }
+
+    /* rs-pill hover */
+    .rs-pill { transition:all .2s ease; }
+    .rs-pill:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(80,94,43,.12); }
+
+    /* Back btn */
+    .back-btn { transition:all .22s cubic-bezier(.2,.8,.3,1); }
+    .back-btn:hover { transform:translateX(-3px); }
+
+    /* ─── Responsive ─── */
+    @media(max-width:1080px){ .grid{grid-template-columns:1fr;} }
+    @media(max-width:640px){ main{padding:14px;} #route-map{height:300px;} .nav{padding:14px 18px;} }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="nav-shell">
+  <header class="nav">
+    <div class="brand"><span style="font-family:'Great Vibes',cursive;font-size:38px;font-weight:700;-webkit-text-stroke:1.2px rgba(255,180,50,.7);background:linear-gradient(135deg,#ff6b35,#ffd700,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:brandShine 3s linear infinite;letter-spacing:.5px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.18));">UrbanX</span></div>
+    <nav class="nav-links">
+      <a href="main.html" class="nav-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg> Command</a>
+      <a href="dashboard.html" class="nav-btn active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg> Control</a>
+      <a href="Contact.html" class="nav-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg> Connect</a>
+      <button class="toggle-btn" id="darkToggleBtn" onclick="toggleDarkMode()" title="Toggle dark mode"></button>
+
+      <div class="user-profile-wrap" id="userProfileWrap" style="display:none; position:relative;">
+        <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()" title="Profile">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <circle cx="18" cy="18" r="18" fill="#6b7f3a"/>
+            <circle cx="18" cy="13" r="6" fill="#c8d89a"/>
+            <ellipse cx="18" cy="30" rx="11" ry="7" fill="#c8d89a"/>
+          </svg>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-name" id="userDropdownName"></div>
+          <div class="user-dropdown-email" id="userDropdownEmail"></div>
+          <hr style="border:none;border-top:1px solid rgba(107,127,58,0.15);margin:8px 0;">
+          <button class="user-logout-btn" onclick="logoutUser()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+    </nav>
+  </header>
+  </div>
+
+  <main>
+    <div class="route-bar">
+      <div class="route-bar-inner">
+        <!-- Back -->
+        <a href="main.html" class="back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </a>
+
+        <!-- Divider -->
+        <div style="width:1px;height:36px;background:rgba(107,127,58,.15);flex-shrink:0"></div>
+
+        <!-- From -->
+        <div class="rb-group">
+          <div class="rb-label">
+            <span class="rl-icon origin">
+              <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="4.5"/><circle cx="5" cy="5" r="1.8" fill="white"/></svg>
+            </span>
+            From
+          </div>
+          <div class="rb-val" id="rb-from">--</div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="rb-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+
+        <!-- To -->
+        <div class="rb-group">
+          <div class="rb-label">
+            <span class="rl-icon destination">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+            </span>
+            To
+          </div>
+          <div class="rb-val" id="rb-to">--</div>
+        </div>
+
+        <!-- Mode buttons -->
+                <!-- Re-run -->
+        <button class="rb-btn" onclick="drawRoute()" style="margin-left:auto">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Re-run
+        </button>
+      </div>
+    </div>
+
+    <div class="status-bar info" id="status-bar"></div>
+
+    <div class="grid">
+      <div class="left">
+        <div class="card">
+          <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg> Route Map — ML Traffic Prediction</div>
+          <div class="map-controls">
+            <select onchange="changeTile(this.value)">
+              <option value="carto-voyager">Carto Voyager</option>
+              <option value="carto-light">Carto Light</option>
+              <option value="carto-dark">Carto Dark</option>
+              <option value="osm" selected>OpenStreetMap</option>
+              <option value="osm-hot">Humanitarian</option>
+              <option value="esri-satellite">Satellite</option>
+            </select>
+            <button onclick="drawRoute()" style="display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Refresh</button>
+            <button onclick="clearRoute()" style="display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg> Clear</button>
+            <button onclick="toggleAnim(this)" data-paused="false" style="display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause</button>
+            <button onclick="fitRoute()" style="display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fit</button>
+          </div>
+          <div class="map-wrap" id="map-wrap">
+            <div class="map-loader" id="map-loader">
+              <div class="spinner"></div>
+              <div>Finding your route...</div>
+              <div class="loader-sub" id="loader-sub">Geocoding locations</div>
+            </div>
+            <div class="map-zoom-badge" id="zoom-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>Zoom 9</div>
+            <button class="map-fs-btn" id="fs-btn" onclick="toggleFullscreen()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
+            <div id="route-map"></div>
+          </div>
+          <div class="legend">
+            <span><span class="ldot" style="background:var(--traffic-low)"></span>Low</span>
+            <span><span class="ldot" style="background:var(--traffic-med)"></span>Medium</span>
+            <span><span class="ldot" style="background:var(--traffic-high)"></span>High</span>
+            <span><span class="ldot" style="background:var(--traffic-severe)"></span>Severe</span>
+            <small style="margin-left:auto;color:var(--text-muted);font-size:11px;">Animated flow = ML prediction · All maps free · No API key</small>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-10"/></svg> Segment Breakdown</div>
+          <div class="seg-list" id="seg-list">
+            <div style="color:var(--text-muted);font-size:13px;padding:8px;">Running ML model...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div class="card-title">
+            <!-- Route path icon — origin to destination -->
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="6" cy="6" r="2" fill="currentColor" stroke="none" opacity=".7"/>
+              <circle cx="18" cy="18" r="2" fill="currentColor" stroke="none" opacity=".7"/>
+              <path d="M6 8c0 6 12 2 12 8"/>
+            </svg>
+            Journey Details
+          </div>
+          <div class="journey-card">
+
+            <!-- 2×2 stat tiles -->
+            <div class="jd-tiles">
+              <div class="jd-tile" style="--tile-accent:var(--primary)">
+                <div class="tile-icon">
+                  <!-- Clock with route dot — ETA -->
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"/>
+                    <polyline points="12 7 12 12 15.5 14"/>
+                  </svg>
+                </div>
+                <div class="tile-lbl">ETA</div>
+                <div class="tile-val" id="eta-val">--</div>
+                <div class="tile-sub" id="eta-arrive">travel time</div>
+              </div>
+              <div class="jd-tile" style="--tile-accent:var(--accent)">
+                <div class="tile-icon">
+                  <!-- Road distance — two pins connected -->
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="6" cy="19" r="2" fill="currentColor" stroke="none" opacity=".7"/>
+                    <circle cx="18" cy="5" r="2" fill="currentColor" stroke="none" opacity=".7"/>
+                    <path d="M6 17V9a6 6 0 0 1 12 0v8"/>
+                    <line x1="12" y1="9" x2="12" y2="20"/>
+                  </svg>
+                </div>
+                <div class="tile-lbl">Distance</div>
+                <div class="tile-val" id="dist-val">--</div>
+                <div class="tile-sub">total route</div>
+              </div>
+              <div class="jd-tile" style="--tile-accent:#3b82f6">
+                <div class="tile-icon" style="background:rgba(59,130,246,.1)">
+                  <!-- Speedometer arc -->
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10"/>
+                    <path d="M12 6v2M6 12H4M10.5 13.5l4-4"/>
+                    <circle cx="12" cy="12" r="1.5" fill="#3b82f6" stroke="none"/>
+                  </svg>
+                </div>
+                <div class="tile-lbl">Avg Speed</div>
+                <div class="tile-val" id="speed-val" style="color:#3b82f6">--</div>
+                <div class="tile-sub">km / hr</div>
+              </div>
+              <div class="jd-tile" style="--tile-accent:var(--traffic-high)">
+                <div class="tile-icon" style="background:rgba(217,79,30,.08)">
+                  <!-- Hourglass — delay/waiting -->
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--traffic-high)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 2h14"/>
+                    <path d="M5 22h14"/>
+                    <path d="M17 2v4l-5 5 5 5v4"/>
+                    <path d="M7 2v4l5 5-5 5v4"/>
+                  </svg>
+                </div>
+                <div class="tile-lbl">Delay</div>
+                <div class="tile-val" id="delay-val" style="color:var(--traffic-high)">--</div>
+                <div class="tile-sub">extra time</div>
+              </div>
+            </div>
+
+            <!-- Congestion panel -->
+            <div class="cong-panel">
+              <div class="cong-header">
+                <span class="cong-title">
+                  <!-- Traffic flow bars icon -->
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="15" y2="12"/>
+                    <line x1="3" y1="18" x2="18" y2="18"/>
+                  </svg>
+                  Congestion Level
+                </span>
+                <span class="cong-badge" id="cong-badge" style="background:var(--traffic-low);">Low</span>
+              </div>
+              <div class="cong-bar-wrap">
+                <div class="meter-bar" id="cong-bar"></div>
+              </div>
+              <div class="cong-footer">
+                <span class="cong-pct" id="cong-pct">--</span>
+                <span class="cong-desc" id="cong-lbl">Calculating...</span>
+              </div>
+            </div>
+
+            <!-- Quick route status pills -->
+            <div class="route-status-row">
+              <div class="rs-pill">
+                <!-- Arrival flag icon -->
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--traffic-low)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                  <line x1="4" y1="22" x2="4" y2="15"/>
+                </svg>
+                <span id="rs-arrive">Arrive --:--</span>
+              </div>
+              <div class="rs-pill">
+                <!-- Traffic signal icon -->
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="8" y="2" width="8" height="20" rx="3"/>
+                  <circle cx="12" cy="7"  r="1.5" fill="var(--danger)"        stroke="none"/>
+                  <circle cx="12" cy="12" r="1.5" fill="var(--accent)"        stroke="none"/>
+                  <circle cx="12" cy="17" r="1.5" fill="var(--traffic-low)"   stroke="none"/>
+                </svg>
+                <span id="rs-traffic">Traffic --</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <!-- Brain/AI chip icon -->
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="4"/>
+              <path d="M9 9h6M9 12h6M9 15h4"/>
+              <circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+            ML Model Output
+          </div>
+          <div class="stat-rows">
+            <div class="stat-row">Overall level   <span class="stat-val" id="ml-level">--</span></div>
+            <div class="stat-row">Peak vehicles   <span class="stat-val" id="ml-veh">--</span></div>
+            <div class="stat-row">Delay           <span class="stat-val" id="ml-delay">--</span></div>
+            <div class="stat-row">Model           <span class="stat-val" style="color:var(--text-muted);font-size:12px">GradientBoosting</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <!-- Timeline / forecast icon -->
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            60-min Forecast
+          </div>
+          <div class="tl" id="timeline"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">© 2026 UrbanX AI — Route Intelligence · All maps 100% free</footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+<script src="transition.js"></script>
+<script>
+const FLASK = 'http://127.0.0.1:5001';
+
+/* ── Traffic colour tokens (mirrors CSS vars) ── */
+const TRAFFIC = {
+    low:    '#1d9e5c',
+    med:    '#e8a020',
+    high:   '#d94f1e',
+    severe: '#8b2fc9',
+};
+
+/* ── All-free tile layers ── */
+const TILES = {
+    'carto-voyager': { url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',   attr:'© CARTO © OpenStreetMap' },
+    'carto-light':   { url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',             attr:'© CARTO © OpenStreetMap' },
+    'carto-dark':    { url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',              attr:'© CARTO © OpenStreetMap' },
+    'osm':           { url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',                         attr:'© OpenStreetMap contributors' },
+    'osm-hot':       { url:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',                      attr:'© OpenStreetMap contributors' },
+    'esri-satellite':{ url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr:'© Esri' },
+};
+
+/* ── Route source ── */
+const FROM_TEXT = localStorage.getItem('ux_from') || 'Jaipur, Rajasthan';
+const TO_TEXT   = localStorage.getItem('ux_to')   || 'Kota, Rajasthan';
+document.getElementById('rb-from').textContent = FROM_TEXT;
+document.getElementById('rb-to').textContent   = TO_TEXT;
+
+/* ── Map init ── */
+const map   = L.map('route-map').setView([26.5, 75.9], 9);
+let   tile  = L.tileLayer(TILES['osm'].url, { attribution:TILES['osm'].attr, maxZoom:19 }).addTo(map);
+const layers = [], animLines = [];
+let   lastBounds = null;
+
+/* Zoom badge */
+map.on('zoomend', () => {
+    document.getElementById('zoom-badge').textContent = 'Zoom ' + map.getZoom();
+});
+
+/* ── Tile switch ── */
+function changeTile(s) {
+    map.removeLayer(tile);
+    const t = TILES[s] || TILES['carto-voyager'];
+    tile = L.tileLayer(t.url, { attribution:t.attr, maxZoom:19 }).addTo(map);
+}
+
+/* ── Clear & fit ── */
+function clearRoute() { layers.forEach(l => map.removeLayer(l)); layers.length = 0; animLines.length = 0; }
+function fitRoute()   { if (lastBounds) map.fitBounds(lastBounds.pad(0.12)); }
+
+/* ── Fullscreen ── */
+function toggleFullscreen() {
+    const wrap = document.getElementById('map-wrap');
+    const btn  = document.getElementById('fs-btn');
+    if (!document.fullscreenElement) {
+        wrap.requestFullscreen && wrap.requestFullscreen();
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+    } else {
+        document.exitFullscreen && document.exitFullscreen();
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+    }
+}
+document.addEventListener('fullscreenchange', () => {
+    document.getElementById('route-map').style.height = document.fullscreenElement ? '100vh' : '460px';
+    map.invalidateSize();
+});
+
+/* ── Classify ── */
+function colorToLevel(c) {
+    const m = { [TRAFFIC.low]:'Low', [TRAFFIC.med]:'Medium', [TRAFFIC.high]:'High', [TRAFFIC.severe]:'Severe' };
+    return m[c] || 'Mixed';
+}
+function classify(v) {
+    if (v < 60)  return { level:'Low',    color:TRAFFIC.low,    delay:'On time ✓' };
+    if (v < 120) return { level:'Medium', color:TRAFFIC.med,    delay:'+8 min'    };
+    if (v < 180) return { level:'High',   color:TRAFFIC.high,   delay:'+18 min'   };
+    return             { level:'Severe', color:TRAFFIC.severe, delay:'+35 min'   };
+}
+
+
+/* ─── Premium diamond map pin ─── */
+function makeMarkerPin(color, label, isOrigin) {
+    const pulse = isOrigin ? `<div style="position:absolute;inset:-7px;border-radius:50%;border:2px solid ${color};opacity:.42;animation:mPulse 2s ease-out infinite;pointer-events:none;"></div>` : '';
+    const icon  = isOrigin
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="white" stroke="none"/></svg>`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`;
+    const lbl = label.length > 14 ? label.substring(0,13)+'…' : label;
+    return L.divIcon({
+        className:'', iconAnchor:[20,48], popupAnchor:[0,-50],
+        html:`<div style="position:relative;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 10px ${color}55);">
+            <style>@keyframes mPulse{0%{transform:scale(1);opacity:.42}100%{transform:scale(2.4);opacity:0}}</style>
+            <div style="position:relative;width:40px;height:40px;border-radius:50% 50% 50% 6px;
+                background:linear-gradient(145deg,${color}ee,${color}bb);
+                display:flex;align-items:center;justify-content:center;
+                border:2.5px solid rgba(255,255,255,.6);
+                box-shadow:0 3px 14px ${color}66,inset 0 1px 0 rgba(255,255,255,.3);
+                transform:rotate(-45deg);">
+              ${pulse}
+              <div style="transform:rotate(45deg);">${icon}</div>
+            </div>
+            <div style="margin-top:6px;background:linear-gradient(135deg,${color}ee,${color}bb);
+                color:white;padding:3px 11px;border-radius:20px;font-size:10px;font-weight:700;
+                font-family:Poppins,sans-serif;white-space:nowrap;letter-spacing:.3px;
+                border:1.5px solid rgba(255,255,255,.4);box-shadow:0 2px 8px ${color}44;">${lbl}</div>
+        </div>`
+    });
+}
+function makeIcon(color, label) {
+    const isOrigin = label.toLowerCase().includes('from') || label.toLowerCase().includes('jaipur');
+    return makeMarkerPin(color, label, isOrigin);
+}
+
+/* ── Segment popup ── */
+
+function segPopup(i, seg) {
+    const lvl = colorToLevel(seg.color);
+    return `<div style="font-family:Poppins,sans-serif;padding:2px 0;min-width:152px;">
+        <div style="font-weight:800;font-size:13px;color:#4f5e2b;margin-bottom:7px;display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7f3a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-10"/></svg>Segment ${i+1}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+            <span style="width:9px;height:9px;border-radius:50%;background:${seg.color};display:inline-block;box-shadow:0 0 0 2px ${seg.color}33;"></span>
+            <span style="color:${seg.color};font-weight:700;font-size:12px;">${lvl}</span>
+        </div>
+        <div style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <b>${seg.vehicles}</b>&nbsp;vehicles/hr</div>
+    </div>`;
+}
+
+/* ── Animated segment ── */
+function addAnimSeg(coords, color) {
+    const base = L.polyline(coords, { color, weight:10, opacity:.25, lineJoin:'round', lineCap:'round' }).addTo(map);
+    const flow = L.polyline(coords, { color, weight:5.5, opacity:.95, dashArray:'14 18', dashOffset:'0', lineJoin:'round', lineCap:'round' }).addTo(map);
+    setTimeout(() => { const el=flow.getElement(); if(el) el.style.animation='dashFlow 1.4s linear infinite'; }, 150);
+    layers.push(base, flow); animLines.push(flow);
+    return flow;
+}
+
+/* ── Toggle animation ── */
+function toggleAnim(btn) {
+    const paused = btn.dataset.paused === 'true';
+    animLines.forEach(l => { const el=l.getElement(); if(el) el.style.animationPlayState = paused?'running':'paused'; });
+    btn.dataset.paused = paused ? 'false' : 'true';
+    btn.innerHTML = paused ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause` : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Resume`;
+}
+
+/* ── Status bar ── */
+function setStatus(msg, type) {
+    const b = document.getElementById('status-bar');
+    b.textContent = msg;
+    b.className = 'status-bar ' + (msg ? (type||'info') + ' show' : '');
+}
+
+/* ── Loader ── */
+function showLoader(msg, sub) {
+    const lo = document.getElementById('map-loader');
+    lo.classList.remove('hide');
+    lo.querySelector('div:nth-child(2)').textContent = msg || '';
+    document.getElementById('loader-sub').textContent = sub || '';
+}
+function hideLoader() { document.getElementById('map-loader').classList.add('hide'); }
+
+/* ── Geocode (Nominatim) ── */
+async function geocode(place) {
+    try {
+        const q = /rajasthan|india/i.test(place) ? place : place + ', Rajasthan, India';
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=in`, { headers:{'Accept-Language':'en'} });
+        const d = await r.json();
+        if (!d.length) return null;
+        return { lat:parseFloat(d[0].lat), lng:parseFloat(d[0].lon) };
+    } catch(e) { return null; }
+}
+
+/* ── Draw route ── */
+async function drawRoute() {
+    clearRoute();
+    showLoader('Finding your route...', 'Geocoding locations');
+    setStatus('Locating ' + FROM_TEXT + ' → ' + TO_TEXT, 'info');
+
+    const fromLL = await geocode(FROM_TEXT);
+    const toLL   = await geocode(TO_TEXT);
+    if (!fromLL) { hideLoader(); setStatus('Could not find: ' + FROM_TEXT, 'error'); return; }
+    if (!toLL)   { hideLoader(); setStatus('Could not find: ' + TO_TEXT,   'error'); return; }
+
+    layers.push(L.marker([fromLL.lat, fromLL.lng], { icon:makeIcon(TRAFFIC.low,  FROM_TEXT.split(',')[0]) }).addTo(map));
+    layers.push(L.marker([toLL.lat,   toLL.lng],   { icon:makeIcon(TRAFFIC.high, TO_TEXT.split(',')[0])   }).addTo(map));
+
+    showLoader('Running ML model...', 'Predicting traffic per segment');
+    setStatus('ML model predicting traffic...', 'info');
+
+    const hour  = new Date().getHours();
+    const month = new Date().getMonth() + 1;
+
+    try {
+        const res  = await fetch(`${FLASK}/route_traffic`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ from:fromLL, to:toLL, hour, month })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        data.segments.forEach((seg, i) => {
+            if (seg.coords.length < 2) return;
+            const line = addAnimSeg(seg.coords, seg.color);
+            line.bindPopup(segPopup(i, seg), { maxWidth:220 });
+        });
+
+        if (data.all_coords.length > 0) {
+            lastBounds = L.latLngBounds(data.all_coords);
+            map.fitBounds(lastBounds.pad(0.12));
+        }
+
+        hideLoader();
+        setStatus(`Route ready — ${data.dist_km} km · ${data.eta_min} min · Animated flow active`, 'success');
+        updatePanels(data);
+
+    } catch(e) {
+        hideLoader();
+        setStatus('Flask offline — demo route shown. Run: python app.py', 'info');
+        showDemoRoute(fromLL, toLL);
+    }
+    buildTimeline();
+}
+
+/* ── Update side panels ── */
+function updatePanels(data) {
+    const etaMin  = parseFloat(data.eta_min) || 0;
+    const distKm  = parseFloat(data.dist_km) || 0;
+
+    // ETA tile
+    const etaEl = document.getElementById('eta-val');
+    if (etaMin >= 60) {
+        const h = Math.floor(etaMin/60), m = Math.round(etaMin%60);
+        etaEl.textContent = m > 0 ? h+'h '+m+'m' : h+'h';
+    } else {
+        etaEl.textContent = Math.round(etaMin) + ' min';
+    }
+
+    // Distance tile — just number + km, no extra label
+    document.getElementById('dist-val').textContent = distKm + ' km';
+
+    // Speed tile
+    const speed = distKm && etaMin ? Math.round(distKm / (etaMin / 60)) : '--';
+    const speedEl = document.getElementById('speed-val');
+    if (speedEl) speedEl.textContent = speed;
+
+    // Arrive time pill
+    const arriveEl = document.getElementById('rs-arrive');
+    if (arriveEl && etaMin) {
+        const t = new Date(Date.now() + etaMin * 60000);
+        arriveEl.textContent = 'Arrive ' + t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
+    // ETA sub
+    const etaArriveEl = document.getElementById('eta-arrive');
+    if (etaArriveEl && etaMin) {
+        const t = new Date(Date.now() + etaMin * 60000);
+        etaArriveEl.textContent = 'by ' + t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
+    const worst = [...data.segments].sort((a,b) => b.vehicles - a.vehicles)[0];
+    const pct   = Math.min(100, Math.round(worst.vehicles / 2.79));
+
+    // Congestion panel
+    document.getElementById('cong-bar').style.width = pct + '%';
+    document.getElementById('cong-pct').textContent = pct + '%';
+    document.getElementById('cong-lbl').textContent = colorToLevel(worst.color) + ' traffic';
+    const badge = document.getElementById('cong-badge');
+    if (badge) { badge.textContent = colorToLevel(worst.color); badge.style.background = worst.color; }
+
+    // Traffic pill
+    const rsTraf = document.getElementById('rs-traffic');
+    if (rsTraf) rsTraf.textContent = colorToLevel(worst.color) + ' — ' + worst.vehicles + ' veh/hr';
+
+    // Delay tile
+    const delayEl = document.getElementById('delay-val');
+    const delayInfo = classify(worst.vehicles);
+    if (delayEl) {
+        delayEl.textContent = delayInfo.delay === 'On time ✓' ? '0 min' : delayInfo.delay;
+        delayEl.style.color = delayInfo.delay === 'On time ✓' ? 'var(--traffic-low)' : 'var(--traffic-high)';
+    }
+
+    document.getElementById('ml-level').textContent = colorToLevel(worst.color);
+    document.getElementById('ml-level').style.color = worst.color;
+    document.getElementById('ml-veh').textContent   = worst.vehicles + ' /hr';
+    document.getElementById('ml-delay').textContent = classify(worst.vehicles).delay;
+
+    const el    = document.getElementById('seg-list');
+    const names = ['City / Entry','Mid-route highway','Open road','Destination approach'];
+    el.innerHTML = data.segments.map((seg, i) => `
+        <div class="seg-item">
+            <div class="seg-dot" style="background:${seg.color}"></div>
+            <div class="seg-info">
+                <div class="seg-name">${names[i]||'Segment '+(i+1)}</div>
+                <div class="seg-detail">${seg.vehicles||'--'} vehicles/hr</div>
+            </div>
+            <span class="seg-badge" style="background:${seg.color}">${colorToLevel(seg.color)}</span>
+        </div>`).join('');
+}
+
+/* ── Demo route (Flask offline) ── */
+function showDemoRoute(from, to) {
+    const colors = [TRAFFIC.high, TRAFFIC.med, TRAFFIC.low, TRAFFIC.med];
+    const m1 = { lat:(from.lat*2+to.lat)/3,   lng:(from.lng*2+to.lng)/3 };
+    const m2 = { lat:(from.lat+to.lat*2)/3,   lng:(from.lng+to.lng*2)/3 };
+    [[from.lat,from.lng],[m1.lat,m1.lng],[m2.lat,m2.lng],[to.lat,to.lng]].forEach((pt,i,arr)=>{
+        if (i < arr.length-1) addAnimSeg([pt, arr[i+1]], colors[i]);
+    });
+    lastBounds = L.latLngBounds([[from.lat,from.lng],[to.lat,to.lng]]);
+    map.fitBounds(lastBounds.pad(0.2));
+    document.getElementById('eta-val').textContent  = '3h 30m';
+    document.getElementById('dist-val').textContent = '~240 km';
+    const speedDemoEl = document.getElementById('speed-val');
+    if (speedDemoEl) speedDemoEl.textContent = '~68';
+    const delayDemoEl = document.getElementById('delay-val');
+    if (delayDemoEl) { delayDemoEl.textContent = '+18 min'; delayDemoEl.style.color='var(--traffic-high)'; }
+    const etaArriveDemoEl = document.getElementById('eta-arrive');
+    if (etaArriveDemoEl) { const t=new Date(Date.now()+3.5*3600000); etaArriveDemoEl.textContent='by '+t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+    const rsArriveDemoEl = document.getElementById('rs-arrive');
+    if (rsArriveDemoEl) { const t=new Date(Date.now()+3.5*3600000); rsArriveDemoEl.textContent='Arrive '+t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+    document.getElementById('cong-bar').style.width = '65%';
+    document.getElementById('cong-pct') && (document.getElementById('cong-pct').textContent = '65%');
+    document.getElementById('cong-lbl').textContent = 'High traffic';
+    const cogBadge = document.getElementById('cong-badge');
+    if (cogBadge) { cogBadge.textContent='High'; cogBadge.style.background=TRAFFIC.high; }
+    const rsTraf = document.getElementById('rs-traffic');
+    if (rsTraf) rsTraf.textContent = 'High — ~160 veh/hr';
+    document.getElementById('ml-level').textContent = 'High';
+    document.getElementById('ml-level').style.color = TRAFFIC.high;
+    document.getElementById('ml-veh').textContent   = '~160 /hr';
+    document.getElementById('ml-delay').textContent = '+18 min';
+    const el = document.getElementById('seg-list');
+    const names = ['City / Entry','Mid-route highway','Open road','Destination approach'];
+    [{color:TRAFFIC.high,vehicles:160},{color:TRAFFIC.med,vehicles:100},{color:TRAFFIC.low,vehicles:45},{color:TRAFFIC.med,vehicles:95}].forEach((seg,i)=>{
+        el.innerHTML += `<div class="seg-item">
+            <div class="seg-dot" style="background:${seg.color}"></div>
+            <div class="seg-info">
+                <div class="seg-name">${names[i]}</div>
+                <div class="seg-detail">${seg.vehicles} veh/hr</div>
+            </div>
+            <span class="seg-badge" style="background:${seg.color}">${colorToLevel(seg.color)}</span>
+        </div>`;
+    });
+}
+
+/* ── 60-min timeline ── */
+function buildTimeline() {
+    const el   = document.getElementById('timeline');
+    const from = FROM_TEXT.split(',')[0], to = TO_TEXT.split(',')[0];
+    el.innerHTML = '';
+    [
+        {t:'Now',    msg:`Departing ${from}`,       c:TRAFFIC.high},
+        {t:'+15min', msg:'Highway — easing up',     c:TRAFFIC.med },
+        {t:'+30min', msg:'Open highway — clear',    c:TRAFFIC.low },
+        {t:'+45min', msg:'Town bypass — slow',      c:TRAFFIC.med },
+        {t:'+60min', msg:`Approaching ${to}`,       c:TRAFFIC.high},
+    ].forEach(item => {
+        el.innerHTML += `<div class="tl-item">
+            <span class="tl-time">${item.t}</span>
+            <div class="tl-dot" style="background:${item.c}"></div>
+            <span>${item.msg}</span>
+        </div>`;
+    });
+}
+
+window.addEventListener('load', () => { setTimeout(drawRoute, 300); });
+
+/* ══ Persistent Dark Mode ══ */
+const MOON_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const SUN_ICON  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>`;
+
+function applyDarkMode(isDark, animate) {
+    document.body.classList.toggle('dark', isDark);
+    const btn = document.getElementById('darkToggleBtn');
+    if (btn) btn.innerHTML = isDark ? SUN_ICON : MOON_ICON;
+    if (animate) {
+        document.querySelectorAll(
+            '.route-bar, .card, .jd-tile, .cong-panel, ' +
+            '.rs-pill, .seg-item, .stat-row, .tl-item, ' +
+            '.map-zoom-badge, .map-fs-btn, .legend'
+        ).forEach((el, i) => {
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = `darkModeIn .45s cubic-bezier(.2,.8,.3,1) ${i * 0.035}s both`;
+        });
+    }
+}
+
+function toggleDarkMode() {
+    const isDark = !document.body.classList.contains('dark');
+    localStorage.setItem('ux_dark', isDark ? '1' : '0');
+    applyDarkMode(isDark, true);
+}
+
+applyDarkMode(localStorage.getItem('ux_dark') === '1', false);
+
+function loadUserProfile() {
+  const token = localStorage.getItem("token");
+  const name  = localStorage.getItem("userName") || "";
+  const email = localStorage.getItem("userEmail") || "";
+  if (token || name) {
+    document.getElementById("userProfileWrap").style.display = "block";
+    if (name)  document.getElementById("userDropdownName").textContent  = name;
+    if (email) document.getElementById("userDropdownEmail").textContent = email;
+  }
+}
+function toggleUserMenu() {
+  const dropdown = document.getElementById("userDropdown");
+  const avatar   = document.getElementById("userAvatar");
+  const rect     = avatar.getBoundingClientRect();
+  dropdown.style.top   = (rect.bottom + 8) + "px";
+  dropdown.style.right = (window.innerWidth - rect.right) + "px";
+  dropdown.classList.toggle("open");
+}
+function logoutUser() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("userName");
+  localStorage.removeItem("userEmail");
+  window.location.href = "login.html";
+}
+document.addEventListener("click", function(e) {
+  const wrap = document.getElementById("userProfileWrap");
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById("userDropdown").classList.remove("open");
+  }
+});
+loadUserProfile();
+</script>
+</body>
+</html>
