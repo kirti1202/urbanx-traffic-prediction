@@ -18,7 +18,7 @@ async function signup() {
   }
 
   try {
-    const res = await fetch("http://localhost:5001/api/auth/signup", {
+    const res = await fetch("https://urbanx-backend.onrender.com/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password })
@@ -55,7 +55,7 @@ async function login() {
   }
 
   try {
-    const res = await fetch("http://localhost:5001/api/auth/login", {
+    const res = await fetch("https://urbanx-backend.onrender.com/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
