@@ -357,7 +357,7 @@
       verifyBtn.textContent = "Verifying…";
 
       try {
-        const res = await fetch("http://localhost:5001/api/auth/verify-otp", {
+        const res = await fetch("https://urbanx-backend.onrender.com/api/auth/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: pendingEmail, otp })
@@ -397,7 +397,7 @@
       resendBtn.disabled = true;
 
       try {
-        const res = await fetch("http://localhost:5000/api/auth/resend-otp", {
+        const res = await fetch("https://urbanx-backend.onrender.com/api/auth/resend-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: pendingEmail })
