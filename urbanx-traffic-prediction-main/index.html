@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>UrbanX — Beat Traffic. Travel Smarter.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Great+Vibes&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#1a1e0e; --cream:#fdf3d0; --cream2:#fef8e6;
+  --olive:#5a6e28; --olivem:#7a9035; --olivel:#a8c048;
+  --amber:#f5a623; --amberd:#c97e10; --red:#d43a2a;
+  --card:rgba(255,249,220,.82); --cardb:rgba(255,249,220,.55);
+  --border:rgba(90,110,40,.18); --muted:#7a7a5a;
+  --lo:#1d9e5c; --me:#e8a020; --hi:#d94f1e; --sv:#8b2fc9;
+  --t:.24s cubic-bezier(.4,0,.2,1);
+}
+body.dark{
+  --ink:#e8f0cc; --cream:#141a08; --cream2:#1b2210;
+  --olive:#9db558; --olivem:#b5cc6a; --olivel:#cce080;
+  --card:rgba(28,38,14,.88); --cardb:rgba(28,38,14,.55);
+  --border:rgba(157,181,88,.18); --muted:#8a9a60;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;transition:background .35s,color .35s;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.5;}
+
+/* NAV */
+.nav-wrap{position:fixed;top:0;left:0;right:0;z-index:500;padding:14px 4vw;animation:slideDown .5s both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:rgba(22,27,10,.9);backdrop-filter:blur(20px);border-radius:16px;border:1px solid rgba(165,192,72,.18);box-shadow:0 8px 32px rgba(0,0,0,.3);max-width:1280px;margin:0 auto;}
+.nav-brand{font-family:'Great Vibes',cursive;font-size:34px;background:linear-gradient(135deg,#f5a623,#ffe680,#f5a623);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:shimmer 3s linear infinite;filter:drop-shadow(0 0 10px rgba(245,166,35,.3));line-height:1.2;}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nav-link{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;text-decoration:none;font-size:.8rem;font-weight:500;color:rgba(255,255,255,.7);background:transparent;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all var(--t);}
+.nav-link:hover{background:rgba(245,166,35,.12);color:rgba(255,255,255,.95);border-color:rgba(245,166,35,.28);}
+.nav-link.hot{background:linear-gradient(135deg,var(--olive),var(--amberd));color:white;font-weight:700;box-shadow:0 3px 14px rgba(90,110,40,.38);}
+.nav-link.hot:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(90,110,40,.5);}
+.nav-dk{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.65);transition:all var(--t);font-family:inherit;}
+.nav-dk:hover{background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.38);color:white;}
+
+/* HERO */
+#hero{min-height:100vh;display:grid;grid-template-columns:1fr 440px;align-items:center;padding:120px 0 0 0;position:relative;overflow:hidden;}
+#hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 50% at 18% 42%,rgba(90,110,40,.11) 0%,transparent 70%),radial-gradient(ellipse 38% 55% at 82% 62%,rgba(245,166,35,.09) 0%,transparent 70%);pointer-events:none;}
+.hero-dots{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.hero-dots::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(90,110,40,.14) 1.5px,transparent 1.5px);background-size:36px 36px;animation:dotDrift 28s linear infinite;}
+@keyframes dotDrift{0%{transform:translate(0,0)}100%{transform:translate(36px,36px)}}
+.hero-left{padding:60px 0 100px 8vw;display:flex;flex-direction:column;align-items:flex-start;position:relative;z-index:2;}
+.live-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(90,110,40,.1);border:1.5px solid rgba(90,110,40,.28);color:var(--olive);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.42rem 1rem;border-radius:999px;margin-bottom:2.2rem;animation:riseUp .5s .05s both;}
+body.dark .live-pill{background:rgba(157,181,88,.1);border-color:rgba(157,181,88,.28);}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--lo);position:relative;flex-shrink:0;}
+.live-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--lo);animation:sonar 1.6s ease-out infinite;opacity:0;}
+@keyframes sonar{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.1);opacity:0}}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,13vw,11rem);line-height:.92;letter-spacing:-.01em;color:var(--ink);margin-bottom:2rem;animation:riseUp .6s .1s both;}
+.hero-title .line2{background:linear-gradient(125deg,var(--olive),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;}
+.hero-title .outline{-webkit-text-stroke:2px var(--olive);-webkit-text-fill-color:transparent;display:block;opacity:.3;}
+.hero-sub{font-size:1.06rem;font-weight:300;color:var(--muted);max-width:480px;line-height:1.76;margin-bottom:2.8rem;animation:riseUp .6s .18s both;}
+.hero-btns{display:flex;gap:.9rem;flex-wrap:wrap;animation:riseUp .6s .26s both;margin-bottom:3.5rem;}
+.btn-main{display:inline-flex;align-items:center;gap:8px;padding:.9rem 2.1rem;border-radius:12px;background:linear-gradient(135deg,var(--olive),var(--amberd));color:white;font-weight:700;font-size:.95rem;text-decoration:none;border:none;cursor:pointer;font-family:inherit;box-shadow:0 6px 24px rgba(90,110,40,.36);transition:transform var(--t),box-shadow var(--t);position:relative;overflow:hidden;}
+.btn-main::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transform:translateX(-100%);transition:transform .5s ease;}
+.btn-main:hover::after{transform:translateX(100%);}
+.btn-main:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(90,110,40,.48);}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:.9rem 2.1rem;border-radius:12px;background:transparent;color:var(--ink);font-weight:600;font-size:.95rem;text-decoration:none;border:2px solid var(--border);transition:all var(--t);}
+.btn-ghost:hover{border-color:var(--amber);background:rgba(245,166,35,.06);transform:translateY(-2px);}
+.ticker-strip{display:flex;gap:.7rem;flex-wrap:wrap;animation:riseUp .6s .34s both;}
+.tick-item{display:flex;align-items:center;gap:.5rem;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:.45rem .9rem;font-size:.78rem;font-weight:500;color:var(--muted);backdrop-filter:blur(8px);}
+.tick-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+@keyframes riseUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+
+/* Rabbit */
+.hero-right{position:relative;height:100%;min-height:600px;display:flex;align-items:flex-end;justify-content:center;overflow:visible;z-index:2;}
+.rabbit-glow{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:420px;height:280px;background:radial-gradient(ellipse,rgba(245,166,35,.26) 0%,rgba(90,110,40,.12) 40%,transparent 70%);filter:blur(36px);border-radius:50%;pointer-events:none;}
+/* rabbit-wrap: bubble is always relative to the image itself */
+.rabbit-wrap{position:relative;display:inline-block;z-index:2;}
+.rabbit-img{width:380px;max-width:100%;display:block;animation:rabbitFloat 4.5s ease-in-out infinite;filter:drop-shadow(0 32px 48px rgba(90,110,40,.24)) drop-shadow(0 8px 16px rgba(245,166,35,.18));mix-blend-mode:multiply;transform-origin:bottom center;}
+body.dark .rabbit-img{mix-blend-mode:normal;filter:drop-shadow(0 32px 48px rgba(0,0,0,.6)) brightness(1.08) saturate(1.2);}
+@keyframes rabbitFloat{0%,100%{transform:translateY(0) rotate(-.3deg)}50%{transform:translateY(-16px) rotate(.3deg)}}
+/* Bubble anchored to rabbit head, not hero column */
+.bubble{position:absolute;top:14%;right:-8px;z-index:10;background:var(--cream2);border:1.5px solid var(--border);border-radius:12px 12px 12px 4px;padding:.5rem 1rem;font-size:.74rem;font-weight:700;color:var(--olive);white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.1);animation:popIn .5s 1s cubic-bezier(.2,.8,.3,1) both;}
+.bubble::after{content:'';position:absolute;bottom:-8px;left:18px;border:5px solid transparent;border-top-color:var(--cream2);}
+.bubble::before{content:'';position:absolute;bottom:-10px;left:17px;border:6px solid transparent;border-top-color:var(--border);}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+
+/* SECTIONS */
+.sec{padding:100px 8vw;}
+.sec-inner{max-width:1280px;margin:0 auto;}
+.sec-tag{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:.5rem;margin-bottom:.9rem;}
+.sec-tag::before{content:'';width:28px;height:2px;background:var(--amber);border-radius:2px;}
+.sec-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.6rem,5vw,4.4rem);line-height:1;letter-spacing:.01em;color:var(--ink);margin-bottom:1.2rem;}
+.sec-p{color:var(--muted);font-size:1rem;max-width:520px;line-height:1.8;font-weight:300;}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease;}
+.rv.in{opacity:1;transform:none;}
+.rv.d1{transition-delay:.1s;}.rv.d2{transition-delay:.2s;}.rv.d3{transition-delay:.3s;}.rv.d4{transition-delay:.4s;}
+
+/* WHAT WE DO */
+#what{background:var(--cream2);clip-path:polygon(0 4%,100% 0,100% 96%,0 100%);padding:140px 8vw;}
+body.dark #what{background:var(--cream2);}
+.what-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:5rem;align-items:center;}
+.feat-list{display:flex;flex-direction:column;gap:.85rem;margin-top:2rem;}
+.feat-item{display:flex;gap:1rem;padding:1.2rem 1.3rem;background:var(--card);border:1.5px solid var(--border);border-radius:14px;transition:all var(--t);position:relative;overflow:hidden;}
+.feat-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--olive),var(--amber));border-radius:3px 0 0 3px;transform:scaleY(0);transform-origin:top;transition:transform .35s cubic-bezier(.2,.8,.3,1);}
+.feat-item:hover::before{transform:scaleY(1);}
+.feat-item:hover{transform:translateX(6px);border-color:rgba(90,110,40,.32);}
+.feat-icon{width:40px;height:40px;border-radius:11px;flex-shrink:0;background:rgba(90,110,40,.09);border:1px solid rgba(90,110,40,.16);display:flex;align-items:center;justify-content:center;}
+.feat-icon svg{color:var(--olive);}
+.feat-item h4{font-weight:700;font-size:.9rem;margin-bottom:.2rem;color:var(--ink);}
+.feat-item p{font-size:.8rem;color:var(--muted);line-height:1.5;font-weight:300;}
+.route-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(90,110,40,.1);position:relative;}
+.route-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--olive),var(--amber));}
+.rc-head{padding:1.3rem 1.5rem .8rem;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border);}
+.rc-body{padding:1.2rem 1.5rem;}
+.rc-row{display:flex;align-items:center;gap:.75rem;padding:.65rem .8rem;border-radius:10px;margin-bottom:.5rem;background:rgba(255,255,255,.5);border:1.5px solid rgba(90,110,40,.1);transition:all var(--t);}
+body.dark .rc-row{background:rgba(40,52,20,.55);}
+.rc-row:hover{transform:translateX(4px);border-color:var(--amber);}
+.rc-row.best{background:rgba(29,158,92,.07);border-color:var(--lo);}
+.rc-label{font-size:.74rem;color:var(--muted);flex:1;font-weight:500;}
+.rc-bar-wrap{flex:2;height:5px;background:rgba(90,110,40,.08);border-radius:3px;overflow:hidden;}
+.rc-bar{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.2,.8,.3,1);}
+.rc-time{font-weight:800;font-size:.95rem;min-width:50px;text-align:right;flex-shrink:0;}
+.rc-badge{padding:2px 9px;border-radius:6px;font-size:.66rem;font-weight:800;color:white;flex-shrink:0;}
+.rc-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);text-align:center;}
+.rc-stat{padding:1rem .5rem;}
+.rc-stat:not(:last-child){border-right:1px solid var(--border);}
+.rc-stat-n{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--olive);letter-spacing:.02em;}
+.rc-stat-l{font-size:.68rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+
+/* CAR SECTION */
+#cars{padding:100px 8vw;position:relative;overflow:hidden;}
+.car-layout{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+.car-light{display:block;}.car-dark{display:none !important;}
+body.dark .car-light{display:none !important;}
+body.dark .car-dark{display:block !important;}
+.car-pic{width:100%;display:block;filter:drop-shadow(0 16px 36px rgba(90,110,40,.16));mix-blend-mode:multiply;transition:transform .5s cubic-bezier(.2,.8,.3,1);animation:carReveal .8s .2s both;}
+body.dark .car-pic{mix-blend-mode:normal;filter:drop-shadow(0 16px 36px rgba(0,0,0,.55));}
+.car-pic:hover{transform:scale(1.03) translateY(-6px);}
+@keyframes carReveal{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.mode-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(90,110,40,.09);border:1.5px solid var(--border);color:var(--olive);font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .85rem;border-radius:999px;margin-bottom:.85rem;}
+body.dark .mode-tag{background:rgba(157,181,88,.1);color:var(--olivem);}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2.5rem;}
+.stat-box{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1.3rem 1rem;text-align:center;transition:transform var(--t),box-shadow var(--t);}
+.stat-box:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(90,110,40,.12);}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--olive);line-height:1;letter-spacing:.02em;}
+.stat-l{font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:.25rem;}
+
+/* WHO */
+#who{background:var(--cream2);clip-path:polygon(0 0,100% 4%,100% 100%,0 96%);padding:140px 8vw;}
+body.dark #who{background:var(--cream2);}
+.who-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3.5rem;flex-wrap:wrap;gap:1.5rem;}
+.who-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;}
+.who-card{padding:2rem 1.6rem;background:var(--card);border:1.5px solid var(--border);border-radius:18px;position:relative;overflow:hidden;transition:all var(--t);}
+.who-card:hover{transform:translateY(-6px);box-shadow:0 20px 48px rgba(90,110,40,.14);border-color:rgba(90,110,40,.32);}
+.who-icon-ring{width:58px;height:58px;border-radius:15px;display:flex;align-items:center;justify-content:center;margin-bottom:1.3rem;position:relative;z-index:1;}
+.who-card h3{font-weight:700;font-size:1.05rem;margin-bottom:.5rem;position:relative;z-index:1;}
+.who-card p{font-size:.84rem;color:var(--muted);line-height:1.65;font-weight:300;position:relative;z-index:1;}
+.who-num{position:absolute;top:1.2rem;right:1.4rem;font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:rgba(90,110,40,.06);line-height:1;pointer-events:none;}
+body.dark .who-num{color:rgba(157,181,88,.07);}
+
+/* IMPACT */
+#impact{padding:100px 8vw;}
+.impact-header{text-align:center;max-width:680px;margin:0 auto 4rem;}
+.impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+.impact-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:2rem 1.6rem;text-align:center;position:relative;overflow:hidden;transition:all var(--t);}
+.impact-card:hover{transform:translateY(-6px);box-shadow:0 20px 48px rgba(90,110,40,.1);}
+.impact-card:nth-child(even){background:rgba(90,110,40,.04);}
+.impact-num{font-family:'Bebas Neue',sans-serif;font-size:4rem;line-height:1;background:linear-gradient(135deg,var(--olive),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.6rem;}
+.impact-card h4{font-weight:700;font-size:1rem;margin-bottom:.5rem;}
+.impact-card p{font-size:.84rem;color:var(--muted);line-height:1.6;font-weight:300;}
+.impact-icon-wrap{width:52px;height:52px;border-radius:14px;margin:0 auto .9rem;display:flex;align-items:center;justify-content:center;}
+
+/* TRUST */
+#trust{background:var(--cream2);clip-path:polygon(0 3%,100% 0,100% 97%,0 100%);padding:140px 8vw;}
+body.dark #trust{background:var(--cream2);}
+.trust-layout{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+.trust-list{display:flex;flex-direction:column;gap:1rem;}
+.trust-item{display:flex;gap:1.2rem;align-items:flex-start;padding:1.4rem 1.5rem;background:var(--card);border:1.5px solid var(--border);border-radius:16px;transition:all var(--t);}
+.trust-item:hover{transform:translateX(6px);border-color:rgba(245,166,35,.4);}
+.trust-badge{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.trust-item h4{font-weight:700;font-size:.95rem;margin-bottom:.3rem;}
+.trust-item p{font-size:.83rem;color:var(--muted);line-height:1.6;font-weight:300;}
+.big-stat-block{background:linear-gradient(145deg,rgba(90,110,40,.07),rgba(245,166,35,.05));border:1.5px solid var(--border);border-radius:24px;padding:3rem 2.5rem;position:relative;overflow:hidden;}
+.big-stat-block::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(245,166,35,.13),transparent 70%);border-radius:50%;pointer-events:none;}
+.big-num{font-family:'Bebas Neue',sans-serif;font-size:7rem;line-height:.9;background:linear-gradient(135deg,var(--olive),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:.3rem;}
+.big-label{font-size:1rem;font-weight:300;color:var(--muted);line-height:1.6;max-width:260px;}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.mini-stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:var(--olive);line-height:1;}
+.mini-stat-l{font-size:.75rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+
+/* MISSION */
+#mission{padding:100px 8vw;text-align:center;position:relative;overflow:hidden;}
+#mission::before{content:'URBANX';position:absolute;font-family:'Bebas Neue',sans-serif;font-size:clamp(8rem,20vw,18rem);color:rgba(90,110,40,.04);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;letter-spacing:.05em;}
+body.dark #mission::before{color:rgba(157,181,88,.04);}
+.mission-inner{max-width:820px;margin:0 auto;position:relative;z-index:1;}
+.mission-text{font-size:clamp(1.05rem,2vw,1.35rem);font-weight:300;color:var(--muted);line-height:1.85;margin:1.5rem 0 2.5rem;}
+.mission-pills{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;}
+.m-pill{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.3rem;border-radius:999px;border:1.5px solid var(--border);background:var(--card);font-size:.85rem;font-weight:500;color:var(--muted);transition:all var(--t);}
+.m-pill:hover{border-color:var(--amber);color:var(--ink);background:rgba(245,166,35,.07);}
+
+/* CTA */
+#cta{background:linear-gradient(135deg,var(--olive) 0%,var(--amberd) 60%,var(--olive) 100%);background-size:200%;animation:ctaShift 8s ease infinite;padding:100px 8vw;text-align:center;position:relative;overflow:hidden;clip-path:polygon(0 6%,100% 0,100% 94%,0 100%);}
+@keyframes ctaShift{0%,100%{background-position:0%}50%{background-position:100%}}
+.cta-inner{position:relative;z-index:1;max-width:760px;margin:0 auto;}
+.cta-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,8vw,7rem);line-height:.95;color:white;margin-bottom:1rem;letter-spacing:.02em;}
+.cta-sub{font-size:1.1rem;color:rgba(255,255,255,.72);font-weight:300;margin-bottom:3rem;}
+.cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
+.cta-btn-main{display:inline-flex;align-items:center;gap:8px;padding:1rem 2.4rem;border-radius:12px;background:white;color:var(--olive);font-weight:800;font-size:1rem;text-decoration:none;box-shadow:0 8px 28px rgba(0,0,0,.18);transition:transform var(--t),box-shadow var(--t);}
+.cta-btn-main:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.26);}
+.cta-btn-sec{display:inline-flex;align-items:center;gap:8px;padding:1rem 2.4rem;border-radius:12px;background:rgba(255,255,255,.13);color:white;font-weight:600;font-size:1rem;text-decoration:none;border:2px solid rgba(255,255,255,.32);backdrop-filter:blur(8px);transition:all var(--t);}
+.cta-btn-sec:hover{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.55);}
+
+/* FOOTER */
+footer{background:var(--ink);color:rgba(255,255,255,.65);padding:70px 8vw 40px;}
+body.dark footer{background:#0d1108;}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:3rem;max-width:1280px;margin:0 auto;padding-bottom:3rem;border-bottom:1px solid rgba(255,255,255,.09);}
+.footer-brand{font-family:'Great Vibes',cursive;font-size:36px;background:linear-gradient(135deg,#f5a623,#ffe680);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:.6rem;}
+.footer-desc{font-size:.85rem;opacity:.55;line-height:1.7;max-width:260px;font-weight:300;}
+.footer-socials{display:flex;gap:.6rem;margin-top:1.4rem;}
+.f-soc{width:36px;height:36px;border-radius:9px;border:1px solid rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.52);text-decoration:none;transition:all var(--t);}
+.f-soc:hover{border-color:var(--amber);color:var(--amber);transform:translateY(-2px);}
+.footer-col h5{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.38;margin-bottom:1rem;}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.footer-col a{font-size:.875rem;color:rgba(255,255,255,.55);text-decoration:none;transition:color var(--t);font-weight:300;}
+.footer-col a:hover{color:var(--amber);}
+.footer-bottom{max-width:1280px;margin:2rem auto 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.f-copy{font-size:.78rem;opacity:.32;}
+.f-legal{display:flex;gap:1.5rem;}
+.f-legal a{font-size:.78rem;opacity:.32;color:white;text-decoration:none;}
+.f-legal a:hover{opacity:.75;}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+  #hero{grid-template-columns:1fr;padding-bottom:60px;}
+  .hero-right{min-height:320px;width:100%;order:-1;margin-top:80px;}
+  .rabbit-img{width:240px;}
+  .bubble{font-size:.68rem;padding:.4rem .85rem;right:-6px;}
+  .hero-left{padding:40px 6vw 60px;}
+  .what-grid,.car-layout,.trust-layout{grid-template-columns:1fr;gap:3rem;}
+  .who-grid{grid-template-columns:repeat(2,1fr);}
+  .impact-grid{grid-template-columns:repeat(2,1fr);}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:640px){
+  .who-grid,.impact-grid{grid-template-columns:1fr;}
+  .nav-links .nav-link:not(.nav-dk):not(.hot){display:none;}
+  .nav-wrap{padding:10px 14px;}
+  .sec{padding:70px 5vw;}
+  .footer-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <header class="nav">
+    <span class="nav-brand">UrbanX</span>
+    <nav class="nav-links">
+      <a href="#what" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>What We Do</a>
+      <a href="#who" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Who We Help</a>
+      <a href="#impact" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Impact</a>
+      <a href="#mission" class="nav-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Mission</a>
+      <a href="signup.html" class="nav-link hot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Get Started</a>
+      <button class="nav-dk" id="dkBtn" onclick="toggleDark()"></button>
+    </nav>
+  </header>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-dots"></div>
+  <div class="hero-left">
+    <div class="live-pill"><span class="live-dot"></span>Live · Bengaluru Traffic</div>
+    <h1 class="hero-title">BEAT<br/><span class="line2">TRAFFIC</span><span class="outline">SMARTER</span></h1>
+    <p class="hero-sub">UrbanX predicts road conditions before you leave — so you always know the fastest, most stress-free route. Real data. Real time. Zero guessing.</p>
+    <div class="hero-btns">
+      <a href="signup.html" class="btn-main">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="20" rx="3"/><circle cx="12" cy="7" r="1.5" fill="#e74c3c" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="#f5a623" stroke="none"/><circle cx="12" cy="17" r="1.5" fill="#1d9e5c" stroke="none"/></svg>
+        Start Predicting Free
+      </a>
+      <a href="login.html" class="btn-ghost">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Sign In
+      </a>
+    </div>
+    <div class="ticker-strip">
+      <div class="tick-item"><span class="tick-dot" style="background:#1d9e5c;box-shadow:0 0 6px #1d9e5c;"></span>MG Road — Clear · 8 min</div>
+      <div class="tick-item"><span class="tick-dot" style="background:#e8a020;box-shadow:0 0 6px #e8a020;"></span>Silk Board — Moderate</div>
+      <div class="tick-item"><span class="tick-dot" style="background:#d94f1e;box-shadow:0 0 6px #d94f1e;"></span>Whitefield — High</div>
+      <div class="tick-item"><span class="tick-dot" style="background:#8b2fc9;box-shadow:0 0 6px #8b2fc9;"></span>E-City — Severe</div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="rabbit-glow"></div>
+    <div class="rabbit-wrap">
+      <div class="bubble"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:3px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Checking your route...</div>
+      <img class="rabbit-img" src="pic/raabbit.png" alt="UrbanX mascot"/>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT WE DO -->
+<section id="what">
+  <div class="sec-inner">
+    <div class="what-grid">
+      <div class="rv">
+        <p class="sec-tag">What UrbanX Does</p>
+        <h2 class="sec-h">REAL-TIME<br/>TRAFFIC ENGINE</h2>
+        <p class="sec-p">We analyse live road data, historical patterns, and city events to predict exactly how roads will look — 30, 60, and 90 minutes ahead.</p>
+        <div class="feat-list">
+          <div class="feat-item"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></div><div><h4>Know Before You Go</h4><p>Predicted conditions up to 90 minutes before your trip.</p></div></div>
+          <div class="feat-item"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div><div><h4>Smarter Route Choices</h4><p>Compare routes and pick the one that saves you the most time.</p></div></div>
+          <div class="feat-item"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-10"/></svg></div><div><h4>Segment-Level Analysis</h4><p>See exactly which stretch is congested — not just a vague ETA.</p></div></div>
+        </div>
+      </div>
+      <div class="rv d2">
+        <div class="route-card">
+          <div class="rc-head"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Live Prediction · Bengaluru</div>
+          <div class="rc-body">
+            <div class="rc-row best"><span class="rc-label">Via Hosur Road</span><div class="rc-bar-wrap"><div class="rc-bar" style="background:#1d9e5c;width:38%;"></div></div><span class="rc-time" style="color:#1d9e5c;">18 min</span><span class="rc-badge" style="background:#1d9e5c;">Best</span></div>
+            <div class="rc-row"><span class="rc-label">Via Outer Ring Rd</span><div class="rc-bar-wrap"><div class="rc-bar" style="background:#e8a020;width:65%;"></div></div><span class="rc-time" style="color:#e8a020;">34 min</span><span class="rc-badge" style="background:#e8a020;">Med</span></div>
+            <div class="rc-row"><span class="rc-label">Via Old Airport Rd</span><div class="rc-bar-wrap"><div class="rc-bar" style="background:#d94f1e;width:90%;"></div></div><span class="rc-time" style="color:#d94f1e;">47 min</span><span class="rc-badge" style="background:#d94f1e;">High</span></div>
+          </div>
+          <div class="rc-stats">
+            <div class="rc-stat"><div class="rc-stat-n">94%</div><div class="rc-stat-l">Accuracy</div></div>
+            <div class="rc-stat"><div class="rc-stat-n">&lt;2s</div><div class="rc-stat-l">Response</div></div>
+            <div class="rc-stat"><div class="rc-stat-n">24/7</div><div class="rc-stat-l">Live Data</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAR SECTION -->
+<section id="cars" class="sec">
+  <div class="sec-inner">
+    <div class="car-layout">
+      <div class="rv">
+        <div class="mode-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg><span id="modeLabel">Light Mode</span></div>
+        <p class="sec-tag">On The Road</p>
+        <h2 class="sec-h">EVERY JOURNEY,<br/>PREDICTED</h2>
+        <p class="sec-p">Whether you're driving a classic or commuting daily — UrbanX makes sure your road is always one step ahead. Real predictions. Zero surprises.</p>
+        <div class="stats-row">
+          <div class="stat-box rv d1"><div class="stat-n">50hrs</div><div class="stat-l">Saved yearly</div></div>
+          <div class="stat-box rv d2"><div class="stat-n">3×</div><div class="stat-l">Route accuracy</div></div>
+          <div class="stat-box rv d3"><div class="stat-n">32min</div><div class="stat-l">Saved daily</div></div>
+        </div>
+      </div>
+      <div class="rv d2">
+        <img class="car-pic car-light" src="pic/dark.png" alt="GT350 — light mode"/>
+        <img class="car-pic car-dark" src="pic/light_.png" alt="GT350 — dark mode"/>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO WE HELP -->
+<section id="who">
+  <div class="sec-inner">
+    <div class="who-header rv">
+      <div><p class="sec-tag">Who We Help</p><h2 class="sec-h">BUILT FOR<br/>EVERY TRAVELLER</h2></div>
+      <p style="max-width:360px;color:var(--muted);font-size:1rem;line-height:1.7;font-weight:300;">UrbanX works for anyone who moves through a city — students, professionals, couriers, and daily commuters alike.</p>
+    </div>
+    <div class="who-grid">
+      <div class="who-card rv d1"><div class="who-num">01</div><div class="who-icon-ring" style="background:rgba(29,158,92,.12);border:1px solid rgba(29,158,92,.22);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1d9e5c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><h3>Students</h3><p>Never miss a lecture. Know traffic before class hours and plan with confidence.</p></div>
+      <div class="who-card rv d2"><div class="who-num">02</div><div class="who-icon-ring" style="background:rgba(90,110,40,.12);border:1px solid rgba(90,110,40,.22);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5a6e28" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div><h3>Office Workers</h3><p>Beat rush hour. Leave at the right time and arrive calm every single day.</p></div>
+      <div class="who-card rv d3"><div class="who-num">03</div><div class="who-icon-ring" style="background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.25);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c97e10" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><h3>Daily Travellers</h3><p>Bus, auto, or car — get route predictions for your commute every day.</p></div>
+      <div class="who-card rv d4"><div class="who-num">04</div><div class="who-icon-ring" style="background:rgba(212,58,42,.1);border:1px solid rgba(212,58,42,.2);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d43a2a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><h3>Delivery People</h3><p>More deliveries, fewer delays. Plan the fastest multi-stop routes in real time.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact" class="sec">
+  <div class="sec-inner">
+    <div class="impact-header rv"><p class="sec-tag" style="justify-content:center;">Our Impact</p><h2 class="sec-h">WHAT CHANGES<br/>FOR YOU</h2></div>
+    <div class="impact-grid">
+      <div class="impact-card rv d1"><div class="impact-icon-wrap" style="background:rgba(90,110,40,.1);border:1px solid rgba(90,110,40,.18);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></div><div class="impact-num">32</div><h4>Minutes Saved Daily</h4><p>Average time saved per commuter using UrbanX predictive routing.</p></div>
+      <div class="impact-card rv d2"><div class="impact-icon-wrap" style="background:rgba(29,158,92,.1);border:1px solid rgba(29,158,92,.18);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1d9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg></div><div class="impact-num">94%</div><h4>Prediction Accuracy</h4><p>Industry-leading ML model trained on millions of live data points.</p></div>
+      <div class="impact-card rv d3"><div class="impact-icon-wrap" style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.22);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c97e10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div><div class="impact-num">3×</div><h4>Better Route Accuracy</h4><p>Outperforms standard navigation ETA by a factor of three.</p></div>
+      <div class="impact-card rv d1"><div class="impact-icon-wrap" style="background:rgba(14,130,219,.1);border:1px solid rgba(14,130,219,.18);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0e82db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg></div><div class="impact-num">50</div><h4>Hours Saved Per Year</h4><p>The average UrbanX user reclaims 50 hours of their life annually.</p></div>
+      <div class="impact-card rv d2"><div class="impact-icon-wrap" style="background:rgba(139,47,201,.1);border:1px solid rgba(139,47,201,.18);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b2fc9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 9h6M9 12h6M9 15h4"/><circle cx="17" cy="15" r="1.5" fill="#8b2fc9" stroke="none"/></svg></div><div class="impact-num">ML</div><h4>Powered Decisions</h4><p>Gradient Boosting model updated every 90 seconds with fresh data.</p></div>
+      <div class="impact-card rv d3"><div class="impact-icon-wrap" style="background:rgba(212,58,42,.1);border:1px solid rgba(212,58,42,.18);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d43a2a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="impact-num">0</div><h4>Surprise Traffic Jams</h4><p>If UrbanX knows about it, you know about it — before it happens.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section id="trust">
+  <div class="sec-inner">
+    <div class="trust-layout">
+      <div class="rv">
+        <p class="sec-tag">Why Users Trust Us</p>
+        <h2 class="sec-h">BUILT TO<br/>BE TRUSTED</h2>
+        <div class="trust-list">
+          <div class="trust-item"><div class="trust-badge" style="background:rgba(29,158,92,.12);border:1px solid rgba(29,158,92,.2);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d9e5c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div><h4>Dead Simple to Use</h4><p>Enter your route, get a prediction. Zero learning curve.</p></div></div>
+          <div class="trust-item"><div class="trust-badge" style="background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.25);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c97e10" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div><h4>Instant Results</h4><p>Predictions load in under 2 seconds. Faster than anything else.</p></div></div>
+          <div class="trust-item"><div class="trust-badge" style="background:rgba(90,110,40,.12);border:1px solid rgba(90,110,40,.2);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div><h4>Crystal Clear Output</h4><p>No cluttered maps. Just the info you need to decide fast.</p></div></div>
+          <div class="trust-item"><div class="trust-badge" style="background:rgba(14,130,219,.1);border:1px solid rgba(14,130,219,.18);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0e82db" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div><div><h4>Beautiful Interface</h4><p>A clean, thoughtful design that gets out of your way.</p></div></div>
+        </div>
+      </div>
+      <div class="big-stat-block rv d2">
+        <span class="big-num">50</span>
+        <div class="big-label">hours lost to traffic per person, per year — UrbanX gives them back.</div>
+        <div class="mini-stats">
+          <div><div class="mini-stat-n" style="color:var(--olive);">32 MIN</div><div class="mini-stat-l">saved daily</div></div>
+          <div><div class="mini-stat-n" style="color:var(--amber);">3×</div><div class="mini-stat-l">route accuracy</div></div>
+          <div><div class="mini-stat-n" style="color:var(--olive);">94%</div><div class="mini-stat-l">prediction rate</div></div>
+          <div><div class="mini-stat-n" style="color:var(--amber);">24/7</div><div class="mini-stat-l">live coverage</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section id="mission" class="sec">
+  <div class="mission-inner rv">
+    <p class="sec-tag" style="justify-content:center;">Our Mission</p>
+    <h2 class="sec-h">A CITY THAT<br/>MOVES SMARTER</h2>
+    <p class="mission-text">We believe nobody should lose hours of their day to traffic they didn't see coming. UrbanX exists to make every journey predictable, every route optimised, and every commute a little less painful.</p>
+    <div class="mission-pills">
+      <span class="m-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Make travel smarter</span>
+      <span class="m-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>Reduce traffic problems</span>
+      <span class="m-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14"/><path d="M5 22h14"/><path d="M17 2v4l-5 5 5 5v4"/><path d="M7 2v4l5 5-5 5v4"/></svg>Help people save time daily</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-inner rv">
+    <h2 class="cta-h">STOP GUESSING.<br/>START PREDICTING.</h2>
+    <p class="cta-sub">Join thousands of commuters who travel smarter with UrbanX every day.</p>
+    <div class="cta-btns">
+      <a href="signup.html" class="cta-btn-main"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="20" rx="3"/><circle cx="12" cy="7" r="1.5" fill="#e74c3c" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="#f5a623" stroke="none"/><circle cx="12" cy="17" r="1.5" fill="#1d9e5c" stroke="none"/></svg>Start Predicting Free</a>
+      <a href="login.html" class="cta-btn-sec"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign In to Dashboard</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <span class="footer-brand">UrbanX</span>
+      <p class="footer-desc">Smarter traffic predictions for everyday commuters. Know your road before you hit it.</p>
+      <div class="footer-socials">
+        <a href="#" class="f-soc" title="Twitter"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        <a href="#" class="f-soc" title="Instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5" fill="currentColor"/></svg></a>
+        <a href="#" class="f-soc" title="LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <a href="#" class="f-soc" title="YouTube"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Product</h5><ul><li><a href="main.html">Traffic Prediction</a></li><li><a href="dashboard.html">Route Dashboard</a></li><li><a href="#">Live Map</a></li><li><a href="#">API Access</a></li></ul></div>
+    <div class="footer-col"><h5>Company</h5><ul><li><a href="#">About Us</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Press</a></li></ul></div>
+    <div class="footer-col"><h5>Contact</h5><ul><li><a href="Contact.html">Contact Us</a></li><li><a href="/cdn-cgi/l/email-protection#48202d242427083d3a2a292630662126"><span class="__cf_email__" data-cfemail="aac2cfc6c6c5eadfd8c8cbc4d284c3c4">[email&#160;protected]</span></a></li><li><a href="#">Support Centre</a></li><li><a href="#">Report an Issue</a></li></ul></div>
+  </div>
+  <div class="footer-bottom">
+    <p class="f-copy">© 2026 UrbanX Technologies. All rights reserved.</p>
+    <div class="f-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Settings</a></div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script>
+/* Scroll Reveal */
+const ro = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in');
+      ro.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.07 });
+
+document.querySelectorAll('.rv').forEach((el) => ro.observe(el));
+
+/* Nav active */
+const navSecs = ['what', 'cars', 'who', 'impact', 'trust', 'mission', 'cta'];
+const navAs = document.querySelectorAll('.nav-link[href^="#"]');
+
+function setNav() {
+  let current = '';
+  navSecs.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 130) current = id;
+  });
+
+  navAs.forEach((a) => {
+    a.classList.toggle('act', a.getAttribute('href').slice(1) === current);
+  });
+}
+
+window.addEventListener('scroll', setNav, { passive: true });
+setNav();
+
+/* Dark Mode */
+const MOON = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const SUN = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>`;
+
+function applyDark(d) {
+  document.body.classList.toggle('dark', d);
+
+  const b = document.getElementById('dkBtn');
+  if (b) b.innerHTML = d ? SUN : MOON;
+
+  const ml = document.getElementById('modeLabel');
+  if (ml) ml.textContent = d ? 'Dark Mode' : 'Light Mode';
+}
+
+function toggleDark() {
+  const d = !document.body.classList.contains('dark');
+  localStorage.setItem('ux_dark', d ? '1' : '0');
+  applyDark(d);
+}
+
+applyDark(localStorage.getItem('ux_dark') === '1');
+
+/* Route bar animate on load */
+document.querySelectorAll('.rc-bar').forEach((bar) => {
+  const targetWidth = bar.style.width;
+  bar.style.width = '0';
+  setTimeout(() => {
+    bar.style.width = targetWidth;
+  }, 300);
+});
+</script>
+</body>
+</html>
